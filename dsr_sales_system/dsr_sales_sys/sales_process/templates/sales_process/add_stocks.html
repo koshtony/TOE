@@ -1,0 +1,98 @@
+
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="home-tab">
+                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+
+                    {% include 'sales_process/add_stocks_nav_links.html' %}
+                   
+                  </div>
+                  <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                      <div class="row">
+
+                           <div class="container mt-5">
+  <div class="card shadow-lg p-4">
+
+    <h3 class="mb-4">Add Stocks</h3>
+
+    <div id="addStockResp">
+
+    </div>
+
+    <div id="addStockSpinner" class="htmx-indicator">
+
+ <div class="spinner-border spinner-border-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow spinner-grow-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+
+    </div>
+
+
+<form 
+            hx-post="{% url 'bulk-add-stock' %}" 
+            hx-target="#addStockResp"
+            hx-indicator="#addStockSpinner"
+      
+        >
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Select Product</label>
+                {{ form.product }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">IMEI Numbers (one per line)</label>
+                {{ form.imei_numbers }}
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                <i class="mdi mdi-plus"></i> Add IMEIs
+            </button>
+        </form>
+      
+    <!-- 🔹 HTMX Form -->
+    
+  </div>
+</div> 
+
+
+
+
+                      
+
+                      </div>
+                    </div>
+                 </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+{% endblock mainContent %}
+
+

@@ -1,0 +1,20 @@
+{% if added_imeis %}
+<div class="alert alert-success">
+    ✅ Added {{ added_imeis|length }} IMEIs for <strong>{{ product.model_name }}</strong>:
+    <ul>
+        {% for imei in added_imeis %}
+            <li>{{ imei }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if duplicate_imeis %}
+<div class="alert alert-warning">
+    ⚠️ {{ duplicate_imeis|length }} duplicate IMEIs skipped.
+    <br>
+    <a href="?download=duplicates" class="btn btn-sm btn-outline-danger mt-2">
+        ⬇ Download Duplicate IMEIs (CSV)
+    </a>
+</div>
+{% endif %}

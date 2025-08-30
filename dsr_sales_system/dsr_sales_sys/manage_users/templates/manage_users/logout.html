@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goodbye 👋</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #ffffff; /* ✅ Pure white background */
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      color: #333; /* Dark text for contrast on white */
+      text-align: center;
+    }
+
+    .goodbye-card {
+      background: linear-gradient(135deg, #3B82F6, #6EE7B7);
+      padding: 50px;
+      border-radius: 25px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      animation: float 4s ease-in-out infinite;
+      max-width: 500px;
+      width: 100%;
+      color: #fff; /* Text inside card is white */
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-15px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .wave-hand {
+      font-size: 4rem;
+      display: inline-block;
+      animation: wave 1.5s infinite;
+    }
+
+    @keyframes wave {
+      0% { transform: rotate(0deg); }
+      20% { transform: rotate(15deg); }
+      40% { transform: rotate(-10deg); }
+      60% { transform: rotate(15deg); }
+      80% { transform: rotate(-5deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .gif-container img {
+      width: 180px;
+      height: auto;
+      margin: 20px 0;
+      border-radius: 12px;
+      animation: fadeIn 2s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .btn-white {
+      background: #fff;
+      color: #3B82F6;
+      font-weight: bold;
+      border-radius: 50px;
+      padding: 10px 25px;
+      transition: 0.3s ease;
+      border: none;
+    }
+
+    .btn-white:hover {
+      background: #e5e5e5;
+      color: #2563eb;
+    }
+
+    .cartoon-cloud {
+      position: absolute;
+      width: 100px;
+      height: 60px;
+      background: #f1f1f1;
+      border-radius: 50%;
+      top: 10%;
+      left: -150px;
+      animation: moveClouds 25s linear infinite;
+    }
+
+    .cartoon-cloud::before,
+    .cartoon-cloud::after {
+      content: '';
+      position: absolute;
+      background: #f1f1f1;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+    }
+
+    .cartoon-cloud::before { top: -20px; left: 10px; }
+    .cartoon-cloud::after { top: -10px; left: 50px; }
+
+    @keyframes moveClouds {
+      0%   { left: -150px; }
+      100% { left: 110%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Clouds animation -->
+  <div class="cartoon-cloud"></div>
+  <div class="cartoon-cloud" style="top: 30%; animation-duration: 40s;"></div>
+  <div class="cartoon-cloud" style="top: 55%; animation-duration: 50s;"></div>
+
+  <!-- Goodbye Card -->
+  <div class="goodbye-card">
+    <div class="wave-hand">👋</div>
+    <h1>Goodbye, see you soon!</h1>
+    <div class="gif-container">
+      <img src="https://media.giphy.com/media/l4pTfx2qLszoacZRS/giphy.gif" alt="Waving Cartoon">
+    </div>
+    <p>You have been logged out successfully.</p>
+    <a href="{% url 'login' %}" class="btn btn-white mt-3">
+      🔑 Back to Login
+    </a>
+  </div>
+</body>
+</html>

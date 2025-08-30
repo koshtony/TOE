@@ -1,0 +1,34 @@
+<ul class="nav nav-tabs htmx-transition" role="tablist" hx-boost="true">
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'register-users' %}active{% endif %}" 
+       href="{% url 'register-users' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'register-users' %}true{% else %}false{% endif %}">
+       Create User Account
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'list-users' %}active{% endif %}" 
+       href="{% url 'list-users' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'list-users' %}true{% else %}false{% endif %}">
+       User List
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'update-password' %}active{% endif %}" 
+       href="{% url 'update-password' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'update-password' %}true{% else %}false{% endif %}">
+       Update Password
+    </a>
+  </li>
+</ul>
+
+<!-- Small spinner shown during page swaps -->
+

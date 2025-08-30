@@ -1,0 +1,32 @@
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+
+
+
+
+</div>
+</div>
+</div>
+
+{% endblock mainContent %}

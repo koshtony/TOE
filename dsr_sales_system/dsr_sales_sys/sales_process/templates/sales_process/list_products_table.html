@@ -1,0 +1,45 @@
+<table class="table table-bordered table-hover table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Item Code</th>
+          <th>Model Name</th>
+          <th>SKU</th>
+          <th>Category</th>
+          <th>Storage</th>
+          <th>RAM</th>
+          <th>Network</th>
+          <th>Status</th>
+          <th>Created On</th>
+          <th>Created By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ product.item_code }}</td>
+          <td>{{ product.model_name }}</td>
+          <td>{{ product.model_sku }}</td>
+          <td>{{ product.model_category }}</td>
+          <td>{{ product.model_storage|default:"-" }}</td>
+          <td>{{ product.model_ram|default:"-" }}</td>
+          <td>{{ product.network|default:"-" }}</td>
+          <td>
+            <span class="badge 
+              {% if product.status == 'active' %} bg-success 
+              {% elif product.status == 'inactive' %} bg-secondary 
+              {% else %} bg-danger {% endif %}">
+              {{ product.get_status_display }}
+            </span>
+          </td>
+          <td>{{ product.created_on|date:"Y-m-d H:i" }}</td>
+          <td>{{ product.created_by|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="11" class="text-center text-muted">No products found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>

@@ -1,0 +1,204 @@
+
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="home-tab">
+                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+
+                    {% include 'manage_users/tab_nav.html' %}
+                   
+                  </div>
+                  <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                      <div class="row">
+
+                           <div class="container mt-5">
+  <div class="card shadow-lg p-4">
+
+    <h3 class="mb-4">User Registration</h3>
+
+    <div id="userResp">
+
+    </div>
+
+    <div id="userSpinner" class="htmx-indicator">
+
+ <div class="spinner-border spinner-border-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow spinner-grow-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+
+    </div>
+
+    <!-- 🔹 HTMX Form -->
+    <form method="POST" enctype="multipart/form-data"
+          hx-post="{% url 'register-users' %}"
+          hx-target="#userResp"
+          hx-swap="outerHTML"
+          hx-indicator="#userSpinner">
+      {% csrf_token %}
+
+      <div id="form-container" style="zoom:80%">
+
+        <!-- USER INFO -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ user_form.username.label_tag }}
+            {{ user_form.username|add_class:"form-control" }}
+
+            <div class="invalid-feedback d-block">
+            {{ user_form.username.errors }}
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ user_form.email.label_tag }}
+            {{ user_form.email|add_class:"form-control" }}
+               <div class="invalid-feedback d-block">
+            {{ user_form.email.errors }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ user_form.role.label_tag }}
+            {{ user_form.role|add_class:"form-select" }}
+            {{ user_form.role.errors }}
+          </div>
+          <div class="col-md-6 mb-3 form-check">
+            {{ user_form.is_activated }} <label class="form-check-label">Activate Employee</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3 position-relative">
+            {{ user_form.password1.label_tag }}
+      <input type="password" name="password1" id="id_password1" class="form-control pe-5" required>
+      <span class="position-absolute top-50 end-0 translate-middle-y me-3" onclick="togglePassword('id_password1', this)" style="cursor: pointer;">
+        <i class="menu-icon mdi mdi-eye fs-3"></i>
+      </span>
+      {{ user_form.password1.errors }}
+          </div>
+          <div class="col-md-6 mb-3 position-relative">
+           {{ user_form.password2.label_tag }}
+      <input type="password" name="password2" id="id_password2" class="form-control pe-5" required>
+      <span class="position-absolute top-50 end-0 translate-middle-y me-3" onclick="togglePassword('id_password2', this)" style="cursor: pointer;">
+     <i class="menu-icon mdi mdi-eye fs-3"></i>
+      </span>
+       <div class="invalid-feedback d-block">
+      {{ user_form.password2.errors }}
+      </div>
+          </div>
+        </div>
+
+        <hr>
+        <h5 class="mt-4">Profile Info</h5>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ profile_form.full_name.label_tag }}
+            {{ profile_form.full_name|add_class:"form-control" }}
+            {{ profile_form.full_name.errors }}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ profile_form.date_of_birth.label_tag }}
+      
+      <input type="date" name="date_of_birth" id="id_date_of_birth" class="form-control" required>
+            {{ profile_form.date_of_birth.errors }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ profile_form.national_id.label_tag }}
+            {{ profile_form.national_id|add_class:"form-control" }}
+            <div class="invalid-feedback d-block">
+            {{ profile_form.national_id.errors }}
+            </div>  
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ profile_form.region.label_tag }}
+            {{ profile_form.region|add_class:"form-control" }}
+            {{ profile_form.region.errors }}
+          </div>
+        </div>
+         <div class="row">
+            <div class="col-md-6 mb-3">
+            {{ profile_form.date_of_joining.label_tag }}
+      
+      <input type="date" name="date_of_joining" id="id_date_of_joining" class="form-control" required>
+            {{ profile_form.date_of_joining.errors }}
+            </div>
+          <div class="col-md-6 mb-3">
+            {{ profile_form.gender.label_tag }}
+            {{ profile_form.gender|add_class:"form-select" }}
+            {{ profile_form.gender.errors }}
+          </div>
+          
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ profile_form.id_document.label_tag }}
+            {{ profile_form.id_document }}
+            {{ profile_form.id_document.errors }}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ profile_form.photo.label_tag }}
+            {{ profile_form.photo }}
+            {{ profile_form.photo.errors }}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-info w-100 mt-3">Register Employee</button>
+      </div>
+    </form>
+  </div>
+</div>  
+                      
+
+                      </div>
+                    </div>
+                 </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<script>
+function togglePassword(inputId, el) {
+  const input = document.getElementById(inputId);
+  const icon = el.querySelector("i");
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.replace("mdi-eye", "mdi-eye-off");
+  } else {
+    input.type = "password";
+    icon.classList.replace("mdi-eye-off", "mdi-eye");
+  }
+}
+</script>
+{% endblock mainContent %}
+
+

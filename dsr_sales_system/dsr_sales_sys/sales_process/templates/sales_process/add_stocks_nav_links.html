@@ -1,0 +1,28 @@
+<ul class="nav nav-tabs htmx-transition" role="tablist" hx-boost="true">
+    <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'list-products' %}active{% endif %}" 
+       href="{% url 'list-stocks' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'list-products' %}true{% else %}false{% endif %}">
+       Stocks List
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'create-product' %}active{% endif %}" 
+       href="{% url 'bulk-add-stock' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'create-product' %}true{% else %}false{% endif %}">
+       Add Stocks
+    </a>
+  </li>
+  
+
+  
+
+
+</ul>
+
+<!-- Small spinner shown during page swaps -->
+

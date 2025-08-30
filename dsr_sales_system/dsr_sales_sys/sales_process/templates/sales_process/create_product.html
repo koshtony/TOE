@@ -1,0 +1,166 @@
+
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="home-tab">
+                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+
+                    {% include 'sales_process/nav_links.html' %}
+                   
+                  </div>
+                  <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                      <div class="row">
+
+                           <div class="container mt-5">
+  <div class="card shadow-lg p-4">
+
+    <h3 class="mb-4">Create Product</h3>
+
+    <div id="createProductResp">
+
+    </div>
+
+    <div id="createProductSpinner" class="htmx-indicator">
+
+ <div class="spinner-border spinner-border-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow spinner-grow-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+
+    </div>
+
+<form method="POST" 
+      hx-post="{% url 'create-product' %}" 
+      hx-target="#createProductResp" 
+   
+      hx-indicator="#createProductSpinner">
+  {% csrf_token %}
+
+  <div id="form-container" style="zoom:90%">
+
+    <!-- PRODUCT INFO -->
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        {{ product_form.item_code.label_tag }}
+        {{ product_form.item_code|add_class:"form-control" }}
+        <div class="invalid-feedback d-block">
+          {{ product_form.item_code.errors }}
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        {{ product_form.model_name.label_tag }}
+        {{ product_form.model_name|add_class:"form-control" }}
+        <div class="invalid-feedback d-block">
+          {{ product_form.model_name.errors }}
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        {{ product_form.model_sku.label_tag }}
+        {{ product_form.model_sku|add_class:"form-control" }}
+        {{ product_form.model_sku.errors }}
+      </div>
+      <div class="col-md-6 mb-3">
+        {{ product_form.model_category.label_tag }}
+        {{ product_form.model_category|add_class:"form-select" }}
+        {{ product_form.model_category.errors }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        {{ product_form.model_storage.label_tag }}
+        {{ product_form.model_storage|add_class:"form-control" }}
+        {{ product_form.model_storage.errors }}
+      </div>
+      <div class="col-md-6 mb-3">
+        {{ product_form.model_ram.label_tag }}
+        {{ product_form.model_ram|add_class:"form-control" }}
+        {{ product_form.model_ram.errors }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        {{ product_form.network.label_tag }}
+        {{ product_form.network|add_class:"form-control" }}
+        {{ product_form.network.errors }}
+      </div>
+      <div class="col-md-6 mb-3">
+        {{ product_form.other_specifications.label_tag }}
+        {{ product_form.other_specifications|add_class:"form-control" }}
+        {{ product_form.other_specifications.errors }}
+      </div>
+    </div>
+
+    <hr>
+    <h5 class="mt-4">Meta Info</h5>
+
+    <div class="row">
+
+         <div class="col-md-6 mb-3">
+        {{ product_form.price.label_tag }}
+        {{ product_form.price|add_class:"form-control" }}
+        {{ product_form.price.errors }}
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        {{ product_form.status.label_tag }}
+        {{ product_form.status|add_class:"form-select" }}
+        {{ product_form.status.errors }}
+
+    </div>
+      
+    </div>
+
+    <button type="submit" class="btn btn-info w-100 mt-3">Save Product</button>
+  </div>
+</form>
+
+      
+    <!-- 🔹 HTMX Form -->
+    
+  </div>
+</div> 
+
+
+
+
+                      
+
+                      </div>
+                    </div>
+                 </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+{% endblock mainContent %}
+
+
