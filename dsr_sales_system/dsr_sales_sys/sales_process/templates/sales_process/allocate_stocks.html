@@ -1,0 +1,154 @@
+
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+ .dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="home-tab">
+                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+
+                    {% include 'sales_process/add_stocks_nav_links.html' %}
+                   
+                  </div>
+                  <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                      <div class="row">
+
+                           <div class="container mt-5">
+  <div class="card shadow-lg p-4">
+
+    <h3 class="mb-4">Allocate Stocks</h3>
+
+    <div id="allocateStockResp">
+
+    </div>
+
+    <div id="allocateStockSpinner" class="htmx-indicator">
+
+ <div class="spinner-border spinner-border-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow spinner-grow-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+
+    </div>
+
+<div class="row">
+  <!-- Left side: Allocation Form -->
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h5 class="mb-3">Allocate Stock (IMEI: {{ stock.imei_number }})</h5>
+      <div id="allocation-message" class="mt-3 style='max-height: 200px; overflow-y: auto; margin-bottom: 10px;'"></div>
+       <div class="position-relative">
+  <input type="text" 
+         class="form-control" 
+         placeholder="Search user by name..." 
+         hx-get="{% url 'search-users' stock.imei_number %}" 
+         hx-trigger="keyup changed delay:300ms"
+         hx-target="#user-dropdown"
+         hx-indicator=".htmx-indicator"
+         name="query"
+         >
+
+  <!-- Dropdown will appear here -->
+  <div id="user-dropdown" class="position-absolute w-100"></div>
+</div>
+  
+    </div>
+  </div>
+
+  <!-- Right side: Stock History -->
+  <div class="col-md-6">
+    <div class="card p-3 border rounded-lg p-4 h-60 overflow-y-auto bg-white shadow" >
+      <h5 class="mb-3">History for {{ stock.imei_number }}</h5>
+      <ul class="list-group">
+        {% for history in history %}
+          <li class="list-group-item d-flex align-items-center">
+            {% if history.transferred_to.profile.photo %}
+              <img src="{{ history.transferred_to.profile.photo.url }}" class="rounded-circle me-2" width="40" height="40">
+            {% else %}
+              <img src="https://via.placeholder.com/40" class="rounded-circle me-2">
+            {% endif %}
+            <div>
+              <strong>{{ history.transferred_to.profile.full_name }}</strong><br>
+              <small>{{ history.action }} on {{ history.performed_on|date:"Y-m-d H:i" }}</small><br>
+              <em>{{ history.details }}</em>
+            </div>
+          </li>
+        {% empty %}
+          <li class="list-group-item">No history found.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function formatUser(user) {
+    if (!user.id) {
+      return user.text;
+    }
+    var img = $(user.element).data("img");
+    if (img) {
+      return $(`<span><img src="${img}" style="width:25px;height:25px;border-radius:50%;margin-right:5px;"> ${user.text}</span>`);
+    }
+    return user.text;
+  }
+
+  $(document).ready(function() {
+    $('#user-select').select2({
+      templateResult: formatUser,
+      templateSelection: formatUser,
+      width: '100%'
+    });
+  });
+</script>
+
+
+      
+    <!-- 🔹 HTMX Form -->
+    
+  </div>
+</div> 
+
+
+
+
+                      
+
+                      </div>
+                    </div>
+                 </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+{% endblock mainContent %}
+
+

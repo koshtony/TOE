@@ -145,6 +145,14 @@ class StockHistory(models.Model):
         null=True,
         related_name="stock_history_actions"
     )
+    transferred_from = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="transferred_from_allocations",
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
+    transferred_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="transferred_to_allocations",
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
     performed_on = models.DateTimeField(auto_now_add=True)
     details = models.TextField(blank=True, null=True)
 

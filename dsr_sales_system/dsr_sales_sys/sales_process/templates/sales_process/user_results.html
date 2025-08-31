@@ -1,0 +1,20 @@
+{# templates/partials/user_dropdown_results.html #}
+<div class="dropdown-menu show" style="width: 100%;">
+  {% for user in users %}
+    <button class="dropdown-item d-flex align-items-center"
+            type="button"
+            hx-post="{% url 'select-user' imei_number user.id %}"
+            hx-vals='{"user_id": "{{ user.id }}"}'
+            hx-target="#allocation-message">
+          
+      {% if user.profile.photo %}
+        <img src="{{ user.profile.photo.url }}" class="rounded-circle me-2" width="30" height="30">
+      {% else %}
+        <img src="https://via.placeholder.com/30" class="rounded-circle me-2">
+      {% endif %}
+      {{ user.profile.full_name }}
+    </button>
+  {% empty %}
+    <span class="dropdown-item text-muted">No users found</span>
+  {% endfor %}
+</div>

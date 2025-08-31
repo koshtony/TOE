@@ -1,0 +1,23 @@
+{# templates/partials/selected_user.html #}
+<div class="card mt-3 border rounded-lg p-4 h-50 overflow-y-auto bg-white shadow">
+  <div class="card-body d-flex align-items-center">
+    {% if user.profile.photo %}
+      <img src="{{ user.profile.photo.url }}" class="rounded-circle me-3" width="50" height="50">
+    {% else %}
+      <img src="https://via.placeholder.com/50" class="rounded-circle me-3">
+    {% endif %}
+    <div>
+      <h5 class="card-title">{{ user.profile.full_name }}</h5>
+      <p class="card-text text-muted">{{ user.username }}</p>
+    </div>
+  </div>
+  <div class="card-footer text-end">
+    <button class="btn btn-primary"
+            hx-post="{% url 'allocate-stock' imei_number %}"
+            hx-vals='{"user_id": "{{ user.id }}"}'
+            hx-target="#allocation-message"
+           >
+      Allocate
+    </button>
+  </div>
+</div>

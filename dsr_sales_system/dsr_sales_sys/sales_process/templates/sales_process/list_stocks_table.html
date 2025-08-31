@@ -11,8 +11,8 @@
         </thead>
         <tbody id="stock-table">
             {% for stock in stocks %}
-                <tr id="stock-{{ stock.id }}">
-    <td>{{ stock.id }}</td>
+                <tr id="stock-{{ stock.imei_number }}">
+    <td>{{ stock.pk }}</td>
     <td>{{ stock.product.model_name }}</td>
     <td>{{ stock.imei_number }}</td>
     <td>{{ stock.status }}</td>
@@ -24,12 +24,12 @@
         {% endif %}
     </td>
     <td>
-        <button class="btn btn-sm btn-primary"
-                hx-get="{% url 'allocate-stock' stock.id %}"
-                hx-target="#stock-{{ stock.id }}"
-                hx-swap="outerHTML">
-            ➕ Allocate
-        </button>
+        <a class="btn btn-sm btn-primary"
+                href="{% url 'allocate-stock' stock.imei_number %}"
+          
+                hx-boost="true">
+        🎬 Action
+    </a>
     </td>
 </tr>
             {% empty %}

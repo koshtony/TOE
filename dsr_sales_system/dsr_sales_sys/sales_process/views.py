@@ -6,6 +6,7 @@ from .models import Product,Stock,StockHistory
 from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 import csv
 from io import StringIO
 import uuid
@@ -135,27 +136,78 @@ def filter_stocks(request):
 
     return render(request, "sales_process/list_stocks_table.html", {"stocks": stocks})
 
-
-def allocate_stock(request, stock_id):
-    stock = get_object_or_404(Stock, id=stock_id)
+@csrf_exempt
+def allocate_stock(request, imei_number):
+    stock = get_object_or_404(Stock, imei_number=imei_number)
 
     if request.method == "POST":
         user_id = request.POST.get("user_id")
-        user = get_object_or_404(User, id=user_id)
-        stock.assigned_to = user
+        
+        if not user_id:
+            return HttpResponse("<div class='text-danger'>Please select a user.</div>")
+
+        new_user = get_object_or_404(User, id=user_id)
+        old_user = stock.assigned_to
+
+        stock.assigned_to = new_user
+        stock.last_assigned_date = timezone.now().date()
         stock.save()
 
-        # record history
+        # Log allocation / transfer
+        if old_user and old_user != new_user:
+            action = f"Transferred from {old_user} to {new_user}"
+        else:
+            action = f"Allocated to {new_user}"
+            
+        
+
         StockHistory.objects.create(
             stock=stock,
-            action=f"Allocated to {user.username}",
-            performed_by=request.user if request.user.is_authenticated else None,
+            action="allocated",
+            performed_by=request.user,
+            details=action,
+            transferred_to=new_user,
+            transferred_from=old_user
+        )
+       
+        # ✅ return updated row HTML so htmx replaces the <tr>
+        return HttpResponse(
+            f"<div class='alert alert-success'>Stock {stock.imei_number} successfully allocated to {new_user.profile.full_name}</div>"
         )
 
-        return render(request, "partials/stock_row.html", {"stock": stock})
-
+    history = StockHistory.objects.filter(stock__imei_number=imei_number) \
+                .select_related("stock__assigned_to__profile") \
+                .order_by("-performed_on")
+    # GET request → return form partial
     users = User.objects.all()
-    return render(request, "partials/allocate_form.html", {"stock": stock, "users": users})
+    return render(request, "sales_process/allocate_stocks.html", {
+        "stock": stock,
+        "users": users,
+        "history": history
+    })
+
+@csrf_exempt
+def search_users(request,imei_number):
+    
+    query = request.GET.get("query", "").strip()
+    users = User.objects.all()
+    
+    print(query)
+
+    if query:
+        users = users.filter(
+            profile__full_name__icontains=query   # 🔎 Search only in Profile.full_name
+        )
+
+    return render(request, "sales_process/user_results.html", {
+        "users": users,
+        "imei_number": imei_number,
+    })
+
+@csrf_exempt
+def select_user(request, imei_number, user_id):
+    user = get_object_or_404(User, id=user_id)
+    return render(request, "sales_process/selected_user.html", {"user": user, "imei_number": imei_number})
 
 
 def stock_history(request, stock_id):
