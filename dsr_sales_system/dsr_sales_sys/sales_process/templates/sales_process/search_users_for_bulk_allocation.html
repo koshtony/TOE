@@ -1,0 +1,24 @@
+<!-- sales_process/user_results.html -->
+{% for user in users %}
+
+  <div class="flex items-center space-x-3 p-2 border rounded cursor-pointer hover:bg-gray-100"
+       onclick="selectUser('{{ user.id }}', '{{ user.profile.full_name }}')">
+    {% if user.profile.photo %}
+    <img src="{{ user.profile.photo.url }}" alt="Profile" 
+        class="rounded-circle me-2" width="30" height="30">
+    {% else %}
+    <img src="https://via.placeholder.com/40" alt="Profile" class="rounded-circle me-2" width="30" height="30">
+    {% endif %}
+    <span>{{ user.profile.full_name }}</span>
+  </div>
+{% empty %}
+  <p class="text-gray-500 text-sm">No users found</p>
+{% endfor %}
+
+<script>
+function selectUser(id, name) {
+  document.getElementById("selected-user-id").value = id;
+  document.getElementById("user-search").value = name;
+  document.getElementById("user-results").innerHTML = ""; // clear suggestions
+}
+</script>

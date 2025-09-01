@@ -1,0 +1,26 @@
+<!-- sales_process/bulk_allocate_results.html -->
+<div class="bg-white p-4 rounded shadow">
+  {% if error %}
+    <p class="text-red-600">{{ error }}</p>
+  {% else %}
+    <p class="mb-2">Allocated to: <strong>{{ user.profile.full_name }}</strong></p>
+
+    {% if allocated %}
+      <h3 class="font-semibold">✅ Allocated IMEIs:</h3>
+      <ul class="list-disc pl-6 mb-4">
+        {% for imei in allocated %}
+          <li>{{ imei }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if not_found %}
+      <h3 class="font-semibold text-red-600">❌ Not Found:</h3>
+      <ul class="list-disc pl-6">
+        {% for imei in not_found %}
+          <li>{{ imei }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+</div>

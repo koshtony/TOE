@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Delivery Note</title>
+  <style>
+    body { 
+      font-family: "Segoe UI", Arial, sans-serif; 
+      margin: 40px; 
+      color: #333; 
+      background: #f9f9f9;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 25px; 
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 15px;
+    }
+    .header img {
+      max-height: 80px;
+      margin-bottom: 10px;
+    }
+    .company { font-size: 22px; font-weight: bold; color: #4CAF50; }
+    .company-info { font-size: 14px; color: #555; }
+    .section { margin-bottom: 20px; }
+    .section strong { color: #4CAF50; }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table thead {
+      background: #4CAF50;
+      color: white;
+    }
+    th, td { 
+      padding: 10px 14px; 
+      text-align: left; 
+      border-bottom: 1px solid #eee; 
+    }
+    tr:nth-child(even) { background: #f5f5f5; }
+    tr:hover { background: #f0f9f0; }
+    .qr { 
+      text-align: right; 
+      margin-top: 20px; 
+    }
+    .qr img { 
+      width: 120px; 
+      height: 120px; 
+      border: 1px solid #ccc; 
+      padding: 5px; 
+      border-radius: 8px;
+      background: white;
+    }
+    .signature {
+      margin-top: 40px;
+    }
+    .signature-line {
+      border-top: 1px dashed #999;
+      width: 200px;
+      margin-top: 40px;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #777;
+      text-align: center;
+      border-top: 2px solid #eee;
+      padding-top: 15px;
+    }
+  </style>
+</head>
+<body >
+  <div class="container" style="zoom:90%">
+    <!-- Header -->
+    <div class="header">
+      {% if company.logo %}
+
+        <img src="{{ company.logo.url }}" class="rounded-circle me-2" width="80" height="80" alt="Company Logo">
+      {% endif %}
+      <div class="company">{{ company.name }}</div>
+      <div class="company-info">
+        {{ company.address }} | {{ company.phone }} | {{ company.email }}
+      </div>
+    </div>
+
+    <!-- Recipient -->
+    <div class="section">
+      <strong>Delivery To:</strong><br>
+      {{ user.profile.full_name }} <br>
+      {{ user.email }}
+    </div>
+
+    <!-- Date -->
+    <div class="section">
+      <strong>Date:</strong> {{ date|date:"d M Y H:i" }}
+    </div>
+
+    <!-- Allocated Items -->
+    <div class="section">
+      <strong>Allocated Items:</strong>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>IMEI</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stock in stocks %}
+            <tr>
+              <td>{{ stock.product.model_name }} {{ stock.product.model_ram }}+{{ stock.product.model_storage }}</td>
+              <td>{{ stock.imei_number }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- QR -->
+    <div class="qr">
+      <strong>QR Code:</strong><br>
+      <img src="{{ qr_code }}" alt="QR Code">
+    </div>
+
+    <!-- Signature -->
+    <div class="signature">
+      <strong>Signature:</strong>
+      <div class="signature-line"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <strong>Terms & Conditions:</strong> <br>
+      {{ company.terms }}
+    </div>
+  </div>
+</body>
+</html>

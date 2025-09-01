@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import CustomUser, Profile
+from .models import CustomUser, Profile,CompanyProfile
 
 
 # Customizing CustomUser admin
@@ -44,4 +44,10 @@ CustomUserAdmin.inlines = [ProfileInline]
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("user",)
     search_fields = ("user__username", "user__email",)
+    
+
+@admin.register(CompanyProfile)
+class CompanyProfileAdmin(admin.ModelAdmin):
+    list_display = ("name", "phone", "email")
+    search_fields = ("name", "phone", "email")
 

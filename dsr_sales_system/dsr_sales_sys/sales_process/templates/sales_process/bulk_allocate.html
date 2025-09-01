@@ -1,0 +1,173 @@
+
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+ .dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="home-tab">
+                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+
+                    {% include 'sales_process/add_stocks_nav_links.html' %}
+                   
+                  </div>
+                  <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                      <div class="row">
+
+                           <div class="container mt-5">
+  <div class="card shadow-lg p-4">
+
+    <h3 class="mb-4">Allocate Stocks</h3>
+
+    <div id="allocateStockResp">
+
+    </div>
+
+    <div id="bulkAllocateStockSpinner" class="htmx-indicator">
+
+ <div class="spinner-border spinner-border-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow spinner-grow-sm" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+
+    </div>
+
+<div class="row">
+  <!-- Left side: Allocation Form -->
+ <!-- sales_process/bulk_allocate_form.html -->
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+    <br>
+  <h4 class="text-2xl font-bold mb-6 text-gray-800">📦 Bulk Allocate Stocks</h4>
+
+  <form 
+      hx-post="{% url 'bulk-allocate-stock' %}" 
+      hx-target="#bulk-allocate-results"
+      hx-indicator="#bulkAllocateStockSpinner"
+      hx-swap="innerHTML"
+      class="space-y-6">
+
+    {% csrf_token %}
+
+    <!-- 🔍 User Search Input -->
+    <div>
+      <label for="user-search" class="block mb-2 text-sm font-medium text-gray-700">Select User</label>
+      <div class="relative mb-3">
+        <input type="text" 
+               id="user-search" 
+               name="q"
+               placeholder="Search user by full name..."
+               hx-get="{% url 'search-users-for-bulk-allocation' %}"
+               hx-trigger="keyup changed delay:500ms"
+               hx-target="#user-results"
+               hx-swap="innerHTML"
+               class="form-control" />
+        <span class="absolute right-3 top-3 text-gray-400">🔍</span>
+      </div>
+
+      <!-- Search results -->
+      <div id="user-results" 
+           class="mt-2 max-h-48 overflow-y-auto space-y-2 border border-gray-200 rounded-xl bg-gray-50 p-2 shadow-inner"></div>
+      <input type="hidden" name="user" id="selected-user-id" />
+    </div>
+
+    <!-- 📱 IMEI input -->
+    <div class="mb-3">
+      <label for="imei_numbers" class="block mb-2 text-sm font-medium text-gray-700">IMEI Numbers</label>
+      <textarea name="imei_numbers" rows="6" 
+                placeholder="Enter IMEIs, one per line..."
+                class="form-control" style="height:150px;resize: vertical;"></textarea>
+      <p class="text-xs text-gray-500 mt-2">Tip: Paste multiple IMEIs (one per line).</p>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" 
+            class="btn btn-success">
+      <span id="bulkAllocateStockSpinner" class="htmx-indicator animate-spin hidden">⏳</span>
+      🚀 Allocate Stocks
+    </button>
+  </form>
+</div>
+
+<!-- Results will show here -->
+<div id="bulk-allocate-results" class="max-w-2xl mx-auto mt-6"></div>
+
+
+<!-- Results will show here -->
+<div id="bulk-allocate-results" class="max-w-2xl mx-auto mt-6"></div>
+
+
+<!-- Results placeholder -->
+<div id="bulk-allocate-results" class="mt-4"></div>
+
+</div>
+
+
+<script>
+  function formatUser(user) {
+    if (!user.id) {
+      return user.text;
+    }
+    var img = $(user.element).data("img");
+    if (img) {
+      return $(`<span><img src="${img}" style="width:25px;height:25px;border-radius:50%;margin-right:5px;"> ${user.text}</span>`);
+    }
+    return user.text;
+  }
+
+  $(document).ready(function() {
+    $('#user-select').select2({
+      templateResult: formatUser,
+      templateSelection: formatUser,
+      width: '100%'
+    });
+  });
+</script>
+
+
+      
+    <!-- 🔹 HTMX Form -->
+    
+  </div>
+</div> 
+
+
+
+
+                      
+
+                      </div>
+                    </div>
+                 </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+{% endblock mainContent %}
+
+

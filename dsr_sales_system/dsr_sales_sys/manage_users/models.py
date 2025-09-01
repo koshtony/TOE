@@ -59,6 +59,19 @@ class Profile(models.Model):
     def __str__(self):
         return f"Profile of {self.user.username}"
     
+
+class CompanyProfile(models.Model):
+    name = models.CharField(max_length=255)
+    logo = models.ImageField(upload_to="company_logos/", blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    terms = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
 @receiver(post_save, sender=CustomUser)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -66,3 +79,4 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         # ensures profile updates if already exists
         instance.profile.save()
+        

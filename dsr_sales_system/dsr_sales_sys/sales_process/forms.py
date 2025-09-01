@@ -42,3 +42,4 @@ class BulkStockForm(forms.Form):
             'placeholder': 'Enter one IMEI per line'
         })
     )
+

@@ -1,23 +1,31 @@
 <ul class="nav nav-tabs htmx-transition" role="tablist" hx-boost="true">
     <li class="nav-item">
-    <a class="nav-link {% if request.resolver_match.url_name == 'list-products' %}active{% endif %}" 
+    <a class="nav-link {% if request.resolver_match.url_name == 'list-stocks' %}active{% endif %}" 
        href="{% url 'list-stocks' %}" 
        hx-indicator="#newPageSpinner" 
        role="tab" 
-       aria-selected="{% if request.resolver_match.url_name == 'list-products' %}true{% else %}false{% endif %}">
+       aria-selected="{% if request.resolver_match.url_name == 'list-stocks' %}true{% else %}false{% endif %}">
        Stocks List
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link {% if request.resolver_match.url_name == 'create-product' %}active{% endif %}" 
+    <a class="nav-link {% if request.resolver_match.url_name == 'bulk-add-stock' %}active{% endif %}" 
        href="{% url 'bulk-add-stock' %}" 
        hx-indicator="#newPageSpinner" 
        role="tab" 
-       aria-selected="{% if request.resolver_match.url_name == 'create-product' %}true{% else %}false{% endif %}">
+       aria-selected="{% if request.resolver_match.url_name == 'bulk-add-stock' %}true{% else %}false{% endif %}">
        Add Stocks
     </a>
   </li>
-  
+   <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'bulk-allocate-stock' %}active{% endif %}" 
+       href="{% url 'bulk-allocate-stock' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'bulk-allocate-stock' %}true{% else %}false{% endif %}">
+       Allocate Stocks
+    </a>
+  </li>
 
   
 
