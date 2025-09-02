@@ -1,0 +1,110 @@
+
+{% extends 'configs/base.html' %}
+{% load widget_tweaks %}
+{% block mainContent %}
+
+<style>
+
+    .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+ .modal-backdrop.fade.show{
+   display:none;
+ }
+</style>
+ <div class="content-wrapper">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="home-tab">
+                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+
+                    {% include 'sales_process/sales_nav_links.html' %}
+                   
+                  </div>
+                  <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                      <div class="row">
+
+                           <div class="container mt-5">
+  <div class="card shadow-lg p-4">
+
+    <h3 class="mb-4">Sales</h3>
+<div class="container py-4">
+  <h2 class="mb-4">Sales Records</h2>
+
+  <div id="sale-message"></div>
+
+  <table class="table table-bordered table-hover bg-white shadow-sm">
+    <thead class="table-dark">
+      <tr>
+        <th>IMEI</th>
+        <th>Product</th>
+        <th>Customer</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Date Sold</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in sales %}
+    
+        <tr>
+          <td>{{ sale.stock.imei_number }}</td>
+          <td>{{ sale.stock.product.model_name }} {{ sale.stock.product.model_ram }}+{{ sale.stock.product.model_storage }}</td>
+          <td>{{ sale.customer_name }}</td>
+          <td>{{ sale.email }}</td>
+          <td>{{ sale.phone }}</td>
+          <td>{{ sale.sales_date|date:"d M Y H:i" }}</td>
+          <td>
+            <button 
+              class="btn btn-sm btn-danger"
+              hx-post="{% url 'return-sale' sale.pk %}"
+              hx-target="#sale-message"
+              hx-swap="innerHTML"
+              onclick="return confirm('Are you sure you want to return this sale?')"
+            >
+              Return
+            </button>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">No sales found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+    
+
+
+      
+    <!-- 🔹 HTMX Form -->
+    
+  </div>
+</div> 
+
+
+
+
+                      
+
+                      </div>
+                    </div>
+                 </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+{% endblock mainContent %}
+
+

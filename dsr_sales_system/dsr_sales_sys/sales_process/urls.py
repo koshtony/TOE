@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from .views import home_view,create_product,list_products,filter_products,bulk_add_stock,\
     list_stocks,allocate_stock,stock_history,filter_stocks,search_users,select_user,\
-        bulk_allocate_stock,search_users_for_bulk_allocation,download_delivery_note
+        bulk_allocate_stock,search_users_for_bulk_allocation,download_delivery_note,create_sale,sales_list,return_sale
 
 urlpatterns = [
     path('', home_view, name='home'),
@@ -19,5 +19,9 @@ urlpatterns = [
     path('bulk-allocate-stock/', bulk_allocate_stock, name='bulk-allocate-stock'),
     path('search-users-for-bulk-allocation/', search_users_for_bulk_allocation, name='search-users-for-bulk-allocation'),
     path('download-delivery-note/<int:user_id>/', download_delivery_note, name='download-delivery-note'),
+    path('create-sale/', create_sale, name='create-sale'),
+    path('sales-list/', sales_list, name='sales-list'),
+    path('return-sale/<int:pk>/', return_sale, name='return-sale'),
+    
     
 ]

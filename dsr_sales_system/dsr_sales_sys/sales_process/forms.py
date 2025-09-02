@@ -1,5 +1,7 @@
 from django import forms
-from .models import Product
+from .models import Product, Stock, StockHistory,Customer,Sale
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -43,3 +45,80 @@ class BulkStockForm(forms.Form):
         })
     )
 
+class SaleForm(forms.Form):
+    imei_number = forms.CharField(
+        label="IMEI Numbers",
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 16,
+             'style': 'height:150px;resize: vertical;',
+            "placeholder": "Enter one IMEI per line"}),
+    )
+    customer_name = forms.CharField(label="Customer Name", max_length=255)
+    phone = forms.CharField(label="Phone", max_length=50, required=False)
+    email = forms.EmailField(label="Email", required=False)
+    address = forms.CharField(label="Address", widget=forms.Textarea, required=False)
+    id_number = forms.CharField(label="ID Number", max_length=50, required=False)
+
+    def process_sale(self, sold_by):
+        """
+        Process the sale:
+        - Accept multiple IMEIs
+        - Create/reuse customer
+        - Create a single Sale with multiple SaleItems
+        - Update stocks + history
+        """
+        imeis = [
+            imei.strip()
+            for imei in self.cleaned_data["imei_number"].splitlines()
+            if imei.strip()
+        ]
+        if not imeis:
+            raise ValidationError("❌ No IMEIs provided.")
+        with transaction.atomic():
+            # 1. Get/Create Customer
+            customer, created = Customer.objects.get_or_create(
+                id_number=self.cleaned_data.get("id_number") or None,
+                defaults={
+                    "name": self.cleaned_data["customer_name"],
+                    "phone": self.cleaned_data.get("phone"),
+                    "email": self.cleaned_data.get("email"),
+                    "address": self.cleaned_data.get("address", ""),
+                },
+            )
+
+            # 2. Create the Sale
+            
+
+            # 3. Process each IMEI
+            errors = []
+            for imei in imeis:
+                try:
+                    stock = Stock.objects.get(imei_number=imei, status="in_stock")
+
+                    # Create SaleItem
+                    sale = Sale.objects.create(customer=customer, sold_by=sold_by,stock=stock)
+                    
+
+                    # Update stock
+                    stock.status = "sold"
+                    stock.assigned_to = None
+                    stock.last_assigned_date = None
+                    stock.save()
+
+                    # History log
+                    StockHistory.objects.create(
+                        stock=stock,
+                        action="sold",
+                        performed_by=sold_by,
+                        details=f"✅ Sold in Sale #{sale.id} to {customer.name}",
+                    )
+                except Stock.DoesNotExist:
+                    errors.append(f"❌ IMEI {imei} not found or not in stock.")
+
+            if errors:
+                # If some failed, still return sale but raise warning
+                return sale, errors
+
+            return sale, None
+        

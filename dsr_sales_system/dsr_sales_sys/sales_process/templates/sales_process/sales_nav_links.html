@@ -1,0 +1,27 @@
+<ul class="nav nav-tabs htmx-transition" role="tablist" hx-boost="true">
+    <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'sales-list' %}active{% endif %}" 
+       href="{% url 'sales-list' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'sales-list' %}true{% else %}false{% endif %}">
+       S-Out 📤
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'create-sale' %}active{% endif %}" 
+       href="{% url 'create-sale' %}" 
+       hx-indicator="#newPageSpinner" 
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'create-sale' %}true{% else %}false{% endif %}">
+       Upload S-Out 🔃
+    </a>
+  </li>
+
+  
+
+
+</ul>
+
+<!-- Small spinner shown during page swaps -->
+

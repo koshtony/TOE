@@ -158,3 +158,31 @@ class StockHistory(models.Model):
 
     def __str__(self):
         return f"{self.stock.serial_number} - {self.action} on {self.performed_on.strftime('%Y-%m-%d')}"
+    
+
+class Customer(models.Model):
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    id_number = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
+
+class Sale(models.Model):
+    stock = models.OneToOneField(Stock, on_delete=models.CASCADE, related_name="sale",null=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="sales")
+    sales_date = models.DateTimeField(auto_now_add=True)
+    is_returned = models.BooleanField(default=False)
+    sold_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sales_made"
+    )
+
+    def __str__(self):
+        return f"Sale #{self.id} to {self.customer.name}"

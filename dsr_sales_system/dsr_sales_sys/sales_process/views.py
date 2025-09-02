@@ -1,10 +1,11 @@
 from django.shortcuts import render,get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .forms import ProductForm,BulkStockForm
-from .models import Product,Stock,StockHistory
+from .forms import ProductForm,BulkStockForm,SaleForm
+from .models import Product,Stock,StockHistory,Sale,Customer
 from manage_users.models import CompanyProfile
 from django.db import transaction
+from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
@@ -342,6 +343,72 @@ def search_users_for_bulk_allocation(request):
         )[:5]  # limit results
 
     return render(request, "sales_process/search_users_for_bulk_allocation.html", {"users": users})
+
+'''
+
+        sales processing
+        
+'''
+
+def create_sale(request):
+    if request.method == "POST":
+        form = SaleForm(request.POST)
+        if form.is_valid():
+            sale, errors = form.process_sale(sold_by=request.user)
+
+            if errors:
+                return render(request, "sales_process/sales_message.html", {
+                    "status": "warning",
+                    "sale": sale,
+                    "errors": errors
+                })
+
+            return render(request, "sales_process/sales_message.html", {
+                "status": "success",
+                "sale": sale,
+                "errors": None
+            })
+
+        # invalid form
+        return render(request, "sales_process/sales_message.html", {
+            "status": "error",
+            "form": form
+        })
+
+    # ✅ GET: show form
+    form = SaleForm()
+    return render(request, "sales_process/create_sales.html", {"form": form})
+
+
+def sales_list(request):
+    sales = Sale.objects.select_related("stock").order_by("-sales_date")
+    print(sales)
+    return render(request, "sales_process/sales_list.html", {"sales": sales})
+@csrf_exempt
+def return_sale(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    stock = sale.stock
+
+    # update stock status back to available
+    stock.status = "available"
+    stock.save()
+
+    # add to history
+    StockHistory.objects.create(
+        stock=stock,
+        action="Returned from customer",
+        transferred_to=None,
+        transferred_from=sale.customer_name,
+        date=timezone.now()
+    )
+
+    # delete the sale record (or mark it as returned instead if you prefer)
+    sale.delete()
+
+    return JsonResponse({"success": True, "message": f"Sale of IMEI {stock.imei_number} has been returned"})
+
+
+
 
 
     

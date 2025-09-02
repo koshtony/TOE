@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Stock, StockHistory
+from .models import Product, Stock, StockHistory,Sale
 
 
 class StockHistoryInline(admin.TabularInline):
@@ -48,3 +48,7 @@ class StockHistoryAdmin(admin.ModelAdmin):
     search_fields = ("stock__serial_number", "stock__imei_number", "details")
     list_filter = ("action", "performed_on")
     readonly_fields = ("stock", "action", "performed_by", "details", "performed_on")
+
+
+admin.site.register(Sale)
+
