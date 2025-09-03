@@ -37,51 +37,63 @@
 
     <h3 class="mb-4">Sales</h3>
 <div class="container py-4">
-  <h2 class="mb-4">Sales Records</h2>
+  
+<div id="sale-message"> </div>
 
-  <div id="sale-message"></div>
 
-  <table class="table table-bordered table-hover bg-white shadow-sm">
-    <thead class="table-dark">
-      <tr>
-        <th>IMEI</th>
-        <th>Product</th>
-        <th>Customer</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Date Sold</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sale in sales %}
-    
-        <tr>
-          <td>{{ sale.stock.imei_number }}</td>
-          <td>{{ sale.stock.product.model_name }} {{ sale.stock.product.model_ram }}+{{ sale.stock.product.model_storage }}</td>
-          <td>{{ sale.customer_name }}</td>
-          <td>{{ sale.email }}</td>
-          <td>{{ sale.phone }}</td>
-          <td>{{ sale.sales_date|date:"d M Y H:i" }}</td>
-          <td>
-            <button 
-              class="btn btn-sm btn-danger"
-              hx-post="{% url 'return-sale' sale.pk %}"
-              hx-target="#sale-message"
-              hx-swap="innerHTML"
-              onclick="return confirm('Are you sure you want to return this sale?')"
-            >
-              Return
-            </button>
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="7" class="text-center text-muted">No sales found.</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <form 
+      method="POST"
+      hx-post="{% url 'sales-list' %}" 
+      hx-target="#sales-results" 
+      hx-indicator="#salesSpinner"
+      class="row g-3 mb-4">
+
+    {% csrf_token %}
+
+    <div class="col-md-3">
+      <label class="form-label">IMEI</label>
+      <input type="text" name="imei" value="{{ form.imei.value }}" 
+             class="form-control">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Product Name</label>
+      <input type="text" name="product_name" value="{{ form.product_name.value }}" 
+             class="form-control">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Start Date</label>
+      <input type="date" name="start_date" value="{{ form.start_date.value }}" 
+             class="form-control">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">End Date</label>
+      <input type="date" name="end_date" value="{{ form.end_date.value }}" 
+             class="form-control">
+    </div>
+
+    <div class="col-12 text-end">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-search"></i> Search
+      </button>
+
+      
+    </div>
+  </form>
+
+  <!-- Spinner -->
+  <div id="salesSpinner" class="text-center my-2" style="display:none;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  <div class="table-responsive shadow-sm rounded" id="sales-results">
+    {% include 'sales_process/sales_list_table.html' %}
+  </div>
+
+  
 </div>
     
 

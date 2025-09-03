@@ -29,33 +29,33 @@
                           <div class="statistics-details d-flex align-items-center justify-content-between">
                             <div>
                               <p class="statistics-title">Sales Today</p>
-                              <h3 class="rate-percentage">32.53%</h3>
-                              <p class="text-danger d-flex"><i class="mdi mdi-menu-down"></i><span>-0.5%</span></p>
+                              <h3 class="rate-percentage">{{sales_today}}</h3>
+                              <p class="text-danger d-flex"><i class="mdi mdi-menu-down"></i><span>{{growth_today}}</span></p>
                             </div>
                             <div>
                               <p class="statistics-title">Sales This Week</p>
-                              <h3 class="rate-percentage">7,682</h3>
-                              <p class="text-success d-flex"><i class="mdi mdi-menu-up"></i><span>+0.1%</span></p>
+                              <h3 class="rate-percentage">{{sales_week}}</h3>
+                              <p class="text-success d-flex"><i class="mdi mdi-menu-up"></i><span>{{growth_week}}</span></p>
                             </div>
                             <div>
                               <p class="statistics-title">Sales This Month</p>
-                              <h3 class="rate-percentage">68.8</h3>
-                              <p class="text-danger d-flex"><i class="mdi mdi-menu-down"></i><span>68.8</span></p>
+                              <h3 class="rate-percentage">{{sales_month}}</h3>
+                              <p class="text-danger d-flex"><i class="mdi mdi-menu-down"></i><span>{{growth_month}}</span></p>
                             </div>
                             <div class="d-none d-md-block">
                               <p class="statistics-title">Sales This Year</p>
-                              <h3 class="rate-percentage">678886</h3>
-                              <p class="text-success d-flex"><i class="mdi mdi-menu-down"></i><span>+0.8%</span></p>
+                              <h3 class="rate-percentage">{{sales_year}}</h3>
+                              <p class="text-success d-flex"><i class="mdi mdi-menu-down"></i><span>{{growth_year}}</span></p>
                             </div>
                             <div class="d-none d-md-block">
                               <p class="statistics-title">Avg. sales/Agent/per day</p>
-                              <h3 class="rate-percentage">68.8</h3>
-                              <p class="text-danger d-flex"><i class="mdi mdi-menu-down"></i><span>68.8</span></p>
+                              <h3 class="rate-percentage">{{avg_per_agent_today}}</h3>
+                            
                             </div>
                             <div class="d-none d-md-block">
                               <p class="statistics-title">Avg. sales/Agent/per week</p>
-                              <h3 class="rate-percentage">678</h3>
-                              <p class="text-success d-flex"><i class="mdi mdi-menu-down"></i><span>+0.8%</span></p>
+                              <h3 class="rate-percentage">{{avg_per_agent_week}}</h3>
+                             
                             </div>
                           </div>
                         </div>
@@ -73,16 +73,24 @@
                                     </div>
                                     <div>
                                       <div class="dropdown">
-                                        <button class="btn btn-light dropdown-toggle toggle-dark btn-lg mb-0 me-0" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> This month </button>
-                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                          <h6 class="dropdown-header">Settings</h6>
-                                          <a class="dropdown-item" href="#">Today</a>
-                                          <a class="dropdown-item" href="#">This week</a>
-                                          <a class="dropdown-item" href="#">This Year</a>
-                                          <div class="dropdown-divider"></div>
-                                          <a class="dropdown-item" href="#">Separated link</a>
-                                        </div>
+                                        
+                                         <select id="chart-period"
+                                              class="form-select w-auto"
+                                              hx-get="{% url 'sales-chart-data' %}"
+                                              hx-target="#sales-chart"
+                                              hx-indicator="#chart-spinner"
+                                              hx-trigger="change"
+                                              name="period">
+                                        <option value="day">Daily</option>
+                                        <option value="week">Weekly</option>
+                                        <option value="month">Monthly</option>
+                                      </select>
                                       </div>
+                                      <div id="chart-spinner" class="htmx-indicator text-center my-2">
+                                      <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                      </div>
+                                    </div>
                                     </div>
                                   </div>
                                   <div class="d-sm-flex align-items-center mt-1 justify-content-between">
@@ -96,7 +104,7 @@
                                     </div>
                                   </div>
                                   <div class="chartjs-bar-wrapper mt-3">
-                                    <canvas id="marketingOverview"></canvas>
+                                    <canvas id="sales-chart"></canvas>
                                   </div>
                                 </div>
                               </div>
@@ -125,51 +133,53 @@
                                                 <input type="checkbox" class="form-check-input" aria-checked="false" id="check-all"><i class="input-helper"></i></label>
                                             </div>
                                           </th>
-                                          <th>Customer</th>
-                                          <th>Seller</th>
+                                          <th>#</th>
+                                          <th>Seller Profile</th>
+                                          <th>Full Name</th>
                                           <th>Qty</th>
-                                          <th>Status</th>
                                         </tr>
                                       </thead>
                                       <tbody>
-                                       <!--
-                                    
+                                      {% for seller in top_sellers %}
                                         <tr>
                                           <td>
                                             <div class="form-check form-check-flat mt-0">
-                                              <label class="form-check-label">
-                                                <input type="checkbox" class="form-check-input" aria-checked="false"><i class="input-helper"></i></label>
+                                             <td>{{ forloop.counter }}</td>
                                             </div>
                                           </td>
                                           <td>
                                             <div class="d-flex">
-                                              <img src="assets/images/faces/face4.jpg" alt="">
-                                              <div>
-                                                <h6>Matthew Bailey</h6>
-                                                <p>Head admin</p>
-                                              </div>
+                                              {% if seller.sold_by__profile__photo %}
+                                                <img src="{{ seller.sold_by__profile__photo.url }}" 
+                                                    alt="{{ seller.sold_by__profile__full_name }}" 
+                                                    class="rounded-circle me-2" 
+                                                    width="40" height="40">
+                                              {% else %}
+                                                <img src="data:image/jpeg;base64,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" 
+                                                    alt="No Photo" 
+                                                    class="rounded-circle me-2" 
+                                                    width="40" height="40">
+                                              {% endif %}
+                                             
                                             </div>
                                           </td>
                                           <td>
-                                            <h6>Company name 1</h6>
-                                            <p>company type</p>
+                                           {{ seller.sold_by__profile__full_name }}
                                           </td>
                                           <td>
                                             <div>
                                               <div class="d-flex justify-content-between align-items-center mb-1 max-width-progress-wrap">
-                                                <p class="text-success">65%</p>
-                                                <p>85/162</p>
+                                                <p class="text-success">{{ seller.total }}</p>
+                                              
                                               </div>
                                               <div class="progress progress-md">
                                                 <div class="progress-bar bg-danger" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
                                               </div>
                                             </div>
                                           </td>
-                                          <td>
-                                            <div class="badge badge-opacity-danger">Pending</div>
-                                          </td>
+                                        
                                         </tr>
-                                      -->
+                                      {% endfor %}
                                       </tbody>
                                     </table>
                                   </div>
@@ -228,7 +238,7 @@
                                         <h4 class="card-title card-title-dash">Product Share (%)</h4>
                                       </div>
                                       <div>
-                                       
+                                       <canvas id="sales-model-doughnut"></canvas>
                                       </div>
                                       <div id="doughnutChart-legend" class="mt-5 text-center"></div>
                                     </div>
@@ -258,7 +268,7 @@
                                         </div>
                                       </div>
                                       <div class="mt-3">
-                                        <canvas id="leaveReport"></canvas>
+                                        <canvas id="sales-product-bar"></canvas>
                                       </div>
                                     </div>
                                   </div>
@@ -276,5 +286,143 @@
               </div>
             </div>
           </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let salesChart;
 
+function renderSalesChart(labels, values) {
+    const ctx = document.getElementById('sales-chart').getContext('2d');
+    if (salesChart) {
+        salesChart.destroy();
+    }
+    salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Sales',
+                data: values,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.2)',
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+// Initial chart load (daily sales)
+fetch("{% url 'sales-chart-data' %}?period=day")
+  .then(res => res.json())
+  .then(data => renderSalesChart(data.labels, data.values));
+
+// Update chart after HTMX request
+document.body.addEventListener("htmx:afterOnLoad", function(evt) {
+    if (evt.detail.xhr.response) {
+        try {
+            const data = JSON.parse(evt.detail.xhr.response);
+            renderSalesChart(data.labels, data.values);
+        } catch (e) {}
+    }
+});
+
+let productBarChart, modelDoughnutChart;
+
+function renderProductBarChart(labels, values) {
+    const ctx = document.getElementById("sales-product-bar").getContext("2d");
+    if (productBarChart) productBarChart.destroy();
+
+    productBarChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Units Sold",
+                data: values,
+                backgroundColor: "rgba(13,110,253,0.7)",
+                borderRadius: 6,
+                barThickness: 30,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return "📦 " + ctx.formattedValue + " units";
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Quantity Sold" }
+                },
+                x: {
+                    ticks: { autoSkip: false, maxRotation: 45, minRotation: 30 }
+                }
+            }
+        }
+    });
+}
+
+function renderModelDoughnutChart(labels, values) {
+    const ctx = document.getElementById("sales-model-doughnut").getContext("2d");
+    if (modelDoughnutChart) modelDoughnutChart.destroy();
+
+    modelDoughnutChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Sales % by Model",
+                data: values,
+                backgroundColor: [
+                    "#0d6efd", "#198754", "#ffc107", "#dc3545", "#6f42c1",
+                    "#20c997", "#fd7e14", "#6610f2"
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: "right" },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            let total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((ctx.raw / total) * 100).toFixed(1);
+                            return ctx.label + ": " + ctx.raw + " (" + percentage + "%)";
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initial load (fetch from Django)
+fetch("{% url 'sales-per-product-data' %}")
+  .then(res => res.json())
+  .then(data => renderProductBarChart(data.labels, data.values));
+
+fetch("{% url 'sales-per-model-data' %}")
+  .then(res => res.json())
+  .then(data => renderModelDoughnutChart(data.labels, data.values));
+</script>
 {% endblock mainContent %}

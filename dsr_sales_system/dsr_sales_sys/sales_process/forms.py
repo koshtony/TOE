@@ -89,7 +89,7 @@ class SaleForm(forms.Form):
 
             # 2. Create the Sale
             
-
+            sale = Sale.objects.create(customer=customer, sold_by=sold_by)
             # 3. Process each IMEI
             errors = []
             for imei in imeis:
@@ -99,7 +99,7 @@ class SaleForm(forms.Form):
                     # Create SaleItem
                     sale = Sale.objects.create(customer=customer, sold_by=sold_by,stock=stock)
                     
-
+                    print(sale)
                     # Update stock
                     stock.status = "sold"
                     stock.assigned_to = None
@@ -115,10 +115,26 @@ class SaleForm(forms.Form):
                     )
                 except Stock.DoesNotExist:
                     errors.append(f"❌ IMEI {imei} not found or not in stock.")
-
+            print(errors)
             if errors:
                 # If some failed, still return sale but raise warning
                 return sale, errors
 
             return sale, None
+        
+
+class SaleSearchForm(forms.Form):
+    
+    imei = forms.CharField(label="IMEI", max_length=100, required=False)
+    product_name = forms.CharField(label="Product Name", max_length=100, required=False)
+    start_date = forms.DateField(
+        label="Start Date", 
+        required=False, 
+        widget=forms.DateInput(attrs={"type": "date"})
+    )
+    end_date = forms.DateField(
+        label="End Date", 
+        required=False, 
+        widget=forms.DateInput(attrs={"type": "date"})
+    )
         

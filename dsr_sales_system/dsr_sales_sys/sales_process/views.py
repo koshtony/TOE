@@ -1,16 +1,21 @@
 from django.shortcuts import render,get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .forms import ProductForm,BulkStockForm,SaleForm
+from .forms import ProductForm,BulkStockForm,SaleForm,SaleSearchForm
 from .models import Product,Stock,StockHistory,Sale,Customer
 from manage_users.models import CompanyProfile
 from django.db import transaction
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q,Count,F
+from django.db.models.functions import TruncDay, TruncMonth,TruncWeek
+from django.utils.timezone import now
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
+from datetime import date, timedelta
+from django.utils.timezone import localdate
+from django.core.cache import cache
 import csv
 from io import StringIO
 import uuid
@@ -22,9 +27,188 @@ from .operations import generate_qr_code
 @login_required
 def home_view(request):
     
+    # ⚡ quick cache to avoid recomputation
+    payload = cache.get("sales_dash_v2")
+    if payload:
+        return render(request, "sales/dashboard.html", payload)
+
+    today = localdate()
+    yesterday = today - timedelta(days=1)
+
+    # Week starts Monday
+    start_week = today - timedelta(days=today.weekday())
+    prev_week_start = start_week - timedelta(days=7)
+
+    start_month = today.replace(day=1)
+    prev_month_end = start_month - timedelta(days=1)
+    prev_month_start = prev_month_end.replace(day=1)
+
+    start_year = today.replace(month=1, day=1)
+    prev_year_start = date(start_year.year - 1, 1, 1)
+
+    base = Q(is_returned=False)
+
+    # ---------- SINGLE AGGREGATE BLOCK ----------
+    agg = Sale.objects.aggregate(
+        # Totals
+        sales_today=Count("id", filter=base & Q(sales_date__date=today)),
+        sales_yesterday=Count("id", filter=base & Q(sales_date__date=yesterday)),
+
+        sales_week=Count("id", filter=base & Q(sales_date__date__gte=start_week)),
+        sales_prev_week=Count(
+            "id",
+            filter=base & Q(sales_date__date__gte=prev_week_start, sales_date__date__lt=start_week),
+        ),
+
+        sales_month=Count("id", filter=base & Q(sales_date__date__gte=start_month)),
+        sales_prev_month=Count(
+            "id",
+            filter=base & Q(sales_date__date__gte=prev_month_start, sales_date__date__lte=prev_month_end),
+        ),
+
+        sales_year=Count("id", filter=base & Q(sales_date__date__gte=start_year)),
+        sales_prev_year=Count(
+            "id",
+            filter=base & Q(sales_date__date__gte=prev_year_start, sales_date__date__lt=start_year),
+        ),
+
+        # Distinct sellers for averages
+        sellers_today=Count("sold_by", filter=base & Q(sales_date__date=today), distinct=True),
+        sellers_week=Count("sold_by", filter=base & Q(sales_date__date__gte=start_week), distinct=True),
+        sellers_month=Count("sold_by", filter=base & Q(sales_date__date__gte=start_month), distinct=True),
+        sellers_year=Count("sold_by", filter=base & Q(sales_date__date__gte=start_year), distinct=True),
+    )
+
+    def safe_div(a, b):
+        return round(a / b, 2) if b else 0.0
+
+    def growth(curr, prev):
+        if prev == 0:
+            return 100.0 if curr > 0 else 0.0
+        return round(((curr - prev) / prev) * 100, 2)
+
+    # ---------- AVERAGES ----------
+    avg_per_agent_today = safe_div(agg["sales_today"], agg["sellers_today"])
+    avg_per_agent_week  = safe_div(agg["sales_week"],  agg["sellers_week"])
+    avg_per_agent_month = safe_div(agg["sales_month"], agg["sellers_month"])
+
+    days_elapsed_in_week  = (today - start_week).days + 1
+    days_elapsed_in_month = today.day
+    days_elapsed_in_year  = (today - start_year).days + 1
+
+    avg_daily_week  = safe_div(agg["sales_week"],  days_elapsed_in_week)
+    avg_daily_month = safe_div(agg["sales_month"], days_elapsed_in_month)
+    avg_daily_year  = safe_div(agg["sales_year"],  days_elapsed_in_year)
+
+    # ---------- GROWTH ----------
+    growth_today = growth(agg["sales_today"], agg["sales_yesterday"])
+    growth_week  = growth(agg["sales_week"],  agg["sales_prev_week"])
+    growth_month = growth(agg["sales_month"], agg["sales_prev_month"])
+    growth_year  = growth(agg["sales_year"],  agg["sales_prev_year"])
+
+    # ---------- SERIES (small, indexed) ----------
+    last30 = today - timedelta(days=30)
+    sales_per_day = (
+        Sale.objects.filter(base, sales_date__date__gte=last30)
+        .annotate(day=TruncDay("sales_date"))
+        .values("day")
+        .annotate(total=Count("id"))
+        .order_by("day")
+    )
+
+    last12m_start = start_month - timedelta(days=365)
+    sales_per_month = (
+        Sale.objects.filter(base, sales_date__date__gte=last12m_start)
+        .annotate(month=TruncMonth("sales_date"))
+        .values("month")
+        .annotate(total=Count("id"))
+        .order_by("month")
+    )
+
+    # ---------- TOP SELLERS (tiny) ----------
+    top_sellers = (
+    Sale.objects.filter(base)
+    .values("sold_by", "sold_by__profile__full_name", "sold_by__profile__photo")
+    .annotate(total=Count("id"))
+    .order_by("-total")[:5]
+    )
+    context = {
+        **agg,
+        "growth_today": growth_today,
+        "growth_week": growth_week,
+        "growth_month": growth_month,
+        "growth_year": growth_year,
+        "avg_per_agent_today": avg_per_agent_today,
+        "avg_per_agent_week": avg_per_agent_week,
+        "avg_per_agent_month": avg_per_agent_month,
+        "avg_daily_week": avg_daily_week,
+        "avg_daily_month": avg_daily_month,
+        "avg_daily_year": avg_daily_year,
+        "sales_per_day": list(sales_per_day),
+        "sales_per_month": list(sales_per_month),
+        "top_sellers": list(top_sellers),
+    }
+
+    cache.set("sales_dash_v2", payload, 60) 
+    return render(request, "sales_process/home.html", context)
+@csrf_exempt
+def sales_chart_data(request):
+    period = request.GET.get("period", "day")  # default daily
+    base = Sale.objects.filter(is_returned=False)
+
+    if period == "day":
+        qs = (
+            base.annotate(bucket=TruncDay("sales_date"))
+            .values("bucket")
+            .annotate(total=Count("id"))
+            .order_by("bucket")
+        )
+    elif period == "week":
+        qs = (
+            base.annotate(bucket=TruncWeek("sales_date"))
+            .values("bucket")
+            .annotate(total=Count("id"))
+            .order_by("bucket")
+        )
+    else:  # month
+        qs = (
+            base.annotate(bucket=TruncMonth("sales_date"))
+            .values("bucket")
+            .annotate(total=Count("id"))
+            .order_by("bucket")
+        )
+
+    data = {
+        "labels": [row["bucket"].strftime("%Y-%m-%d") for row in qs],
+        "values": [row["total"] for row in qs],
+    }
+    return JsonResponse(data)
+
+
+
+def sales_per_product_data(request):
+    qs = Sale.objects.select_related("stock__product") \
+                     .values("stock__product__model_name") \
+                     .annotate(total=Count("id")) \
+                     .order_by("-total")
+
+    labels = [item["stock__product__model_name"] for item in qs]
+    values = [item["total"] for item in qs]
+    return JsonResponse({"labels": labels, "values": values})
+
+def sales_per_model_data(request):
+    qs = Sale.objects.select_related("stock__product") \
+                     .values("stock__product__model_name") \
+                     .annotate(total=Count("id")) \
+                     .order_by("-total")
+
+    labels = [item["stock__product__model_name"] for item in qs]
+    values = [item["total"] for item in qs]
+    return JsonResponse({"labels": labels, "values": values})
+
     
     
-    return render(request, 'sales_process/home.html')
+   
 
 @login_required
 def create_product(request):
@@ -382,9 +566,33 @@ def create_sale(request):
 
 def sales_list(request):
     sales = Sale.objects.select_related("stock").order_by("-sales_date")
-    print(sales)
+    
+    form = SaleSearchForm(request.GET or None)
+    
+    if request.method == "POST":
+        imei = request.POST.get("imei")
+        product_name = request.POST.get("product_name")
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
+
+        if imei:
+            sales = sales.filter(stock__imei_number=imei)
+        if product_name:
+            sales = sales.filter(stock__product__model_name__icontains=product_name)
+        if start_date:
+            sales = sales.filter(sales_date__date__gte=start_date)
+        if end_date:
+            sales = sales.filter(sales_date__date__lte=end_date)
+            
+   
+        
+        return render(request, "sales_process/sales_list_table.html", {"sales": sales})
+    
+    
+    
     return render(request, "sales_process/sales_list.html", {"sales": sales})
 @csrf_exempt
+@transaction.atomic
 def return_sale(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     stock = sale.stock
@@ -398,14 +606,18 @@ def return_sale(request, pk):
         stock=stock,
         action="Returned from customer",
         transferred_to=None,
-        transferred_from=sale.customer_name,
-        date=timezone.now()
+        transferred_from=sale.sold_by,
+        performed_on=timezone.now()
     )
 
     # delete the sale record (or mark it as returned instead if you prefer)
     sale.delete()
+    
+    sales = Sale.objects.select_related("stock").order_by("-sales_date")
 
-    return JsonResponse({"success": True, "message": f"Sale of IMEI {stock.imei_number} has been returned"})
+    resp = f'<div class="alert alert-success" role="alert">Sale #{sale.stock.imei_number} has been returned.</div>'
+
+    return render(request, "sales_process/sales_list_table.html", {"sales": sales,"resp":resp})
 
 
 

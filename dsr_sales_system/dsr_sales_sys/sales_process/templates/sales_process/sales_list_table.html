@@ -1,0 +1,47 @@
+{{resp | safe}}
+<table class="table table-bordered table-hover bg-white shadow-sm">
+    <thead class="table-dark">
+      <tr>
+        <th>IMEI</th>
+        <th>Product</th>
+        <th>Customer</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Id Number</th>
+        
+        <th>Sold By:👤</th>
+        <th>Date Sold</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in sales %}
+    
+        <tr>
+          <td>{{ sale.stock.imei_number }}</td>
+          <td>{{ sale.stock.product.model_name }} {{ sale.stock.product.model_ram }}+{{ sale.stock.product.model_storage }}</td>
+          <td>{{ sale.customer.name }}</td>
+          <td>{{ sale.customer.email }}</td>
+          <td>{{ sale.customer.phone }}</td>
+          <td>{{ sale.customer.id_number }}</td>
+          <td>{{ sale.sold_by.profile.full_name }}</td>
+          <td>{{ sale.sales_date|date:"d M Y H:i" }}</td>
+          <td>
+            <a
+              class="btn btn-sm btn-danger"
+              hx-post="{% url 'return-sale' sale.pk %}"
+              hx-target="#sales-results"
+              hx-swap="innerHTML"
+              onclick="return confirm('Are you sure you want to return this sale?')"
+            >
+              Return
+          </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">No sales found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
