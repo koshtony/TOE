@@ -17,6 +17,15 @@
        Upload S-Out 🔃
     </a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'order-list' %} active {% endif %}" 
+       href="{% url 'order-list' %}" 
+       hx-indicator="#newPageSpinner"
+       role="tab" 
+       aria-selected="{% if request.resolver_match.url_name == 'order-list' %}true{% else %}false{% endif %}">
+       Orders ➡️ Recipts
+    </a>
+  </li>
 
   
 

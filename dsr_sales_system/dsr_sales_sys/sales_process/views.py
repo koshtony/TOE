@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from .forms import ProductForm,BulkStockForm,SaleForm,SaleSearchForm
 from .models import Product,Stock,StockHistory,Sale,Customer
-from manage_users.models import CompanyProfile
+from manage_users.models import CompanyProfile,Profile, CustomUser
 from django.db import transaction
 from django.contrib import messages
 from django.db.models import Q,Count,F
@@ -17,8 +17,10 @@ from datetime import date, timedelta
 from django.utils.timezone import localdate
 from django.core.cache import cache
 from .operations import generate_qr_code
+import pandas as pd
 import csv
 from io import StringIO
+import io
 import uuid
 import datetime
 from django.urls import reverse
@@ -152,6 +154,7 @@ def home_view(request):
 
     cache.set("sales_dash_v2", payload, 60) 
     return render(request, "sales_process/home.html", context)
+@login_required
 @csrf_exempt
 def sales_chart_data(request):
     period = request.GET.get("period", "day")  # default daily
@@ -186,7 +189,7 @@ def sales_chart_data(request):
     return JsonResponse(data)
 
 
-
+@login_required
 def sales_per_product_data(request):
     qs = Sale.objects.select_related("stock__product") \
                      .values("stock__product__model_name") \
@@ -196,7 +199,7 @@ def sales_per_product_data(request):
     labels = [item["stock__product__model_name"] for item in qs]
     values = [item["total"] for item in qs]
     return JsonResponse({"labels": labels, "values": values})
-
+@login_required
 def sales_per_model_data(request):
     qs = Sale.objects.select_related("stock__product") \
                      .values("stock__product__model_name") \
@@ -308,11 +311,11 @@ def bulk_add_stock(request):
 
 User = get_user_model()
 
-
+@login_required
 def list_stocks(request):
     stocks = Stock.objects.select_related("product").all()
     return render(request, "sales_process/list_stocks.html", {"stocks": stocks})
-
+@login_required
 def filter_stocks(request):
     """HTMX filter endpoint – returns only the table"""
     query = request.GET.get("q", "").strip()
@@ -328,7 +331,7 @@ def filter_stocks(request):
         )
 
     return render(request, "sales_process/list_stocks_table.html", {"stocks": stocks})
-
+@login_required
 @csrf_exempt
 def allocate_stock(request, imei_number):
     stock = get_object_or_404(Stock, imei_number=imei_number)
@@ -378,7 +381,7 @@ def allocate_stock(request, imei_number):
         "users": users,
         "history": history
     })
-
+@login_required
 @csrf_exempt
 def search_users(request,imei_number):
     
@@ -396,7 +399,7 @@ def search_users(request,imei_number):
         "users": users,
         "imei_number": imei_number,
     })
-
+@login_required
 @csrf_exempt
 def select_user(request, imei_number, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -408,7 +411,7 @@ def stock_history(request, stock_id):
     history = StockHistory.objects.filter(stock=stock).order_by("-timestamp")
     return render(request, "partials/stock_history.html", {"stock": stock, "history": history})
 
-
+@login_required
 @transaction.atomic
 def bulk_allocate_stock(request):
     
@@ -478,7 +481,7 @@ def bulk_allocate_stock(request):
         return HttpResponse(html_response)
 
     return render(request, "sales_process/bulk_allocate.html")
-
+@login_required
 def download_delivery_note(request, user_id):
     user = get_object_or_404(User, id=user_id)
     imeis = request.GET.get("imeis", "").split(",")
@@ -515,7 +518,7 @@ def download_delivery_note(request, user_id):
     r = render(request, "sales_process/delivery_note.html", contxt)
     
     return r
-
+@login_required
 @csrf_exempt
 def search_users_for_bulk_allocation(request):
     
@@ -534,7 +537,7 @@ def search_users_for_bulk_allocation(request):
         sales processing
         
 '''
-
+@login_required
 def create_sale(request):
     if request.method == "POST":
         form = SaleForm(request.POST)
@@ -548,8 +551,7 @@ def create_sale(request):
                 return render(request, "sales_process/sales_message.html", {
                     "status": "success",
                     "sale": sale,
-                    "message": f"✅ Sale created successfully! "
-                               f"<a href='{results}' target='_blank'>Download Receipt</a>"
+                    "message": f"✅ Sale created successfully! <a href='{results}' target='_blank'>Download Receipt</a>"
                 })
 
             else:
@@ -569,7 +571,7 @@ def create_sale(request):
     form = SaleForm()
     return render(request, "sales_process/create_sales.html", {"form": form})
 
-
+@login_required
 def sales_list(request):
     sales = Sale.objects.select_related("stock").order_by("-sales_date")
     
@@ -597,6 +599,7 @@ def sales_list(request):
     
     
     return render(request, "sales_process/sales_list.html", {"sales": sales})
+@login_required
 @csrf_exempt
 @transaction.atomic
 def return_sale(request):
@@ -644,7 +647,7 @@ def return_sale(request):
 
         return render(request, "sales_process/sales_list_table.html", {"sales": sales,"resp":resp})
 
-
+@login_required
 def sale_receipt(request, order_id):
     
     sales = get_list_or_404(Sale, order_id=order_id)
@@ -660,19 +663,135 @@ def sale_receipt(request, order_id):
     total_amount = sum(sale.stock.product.price for sale in sales)
     total_quantity = len(sales)
     
+    sale = sales[0]
+    
     return render(request, "sales_process/sales_receipt.html", {
         "sales": sales,
         "company": company,
         "customer": customer,
+        "order_id": order_id,
         "total_amount": total_amount,
+        "sales_date": sales[0].sales_date,
         "total_quantity": total_quantity,
         "qr_code_base64": qr_code_base64,
+        "sale": sale
         
     })
+@login_required   
+def order_list(request):
+    
+    orders = (
+        Sale.objects.values("order_id")
+        .distinct()
+        .order_by("-sales_date")
+    )
+    return render(request, "sales_process/order_list.html", {"orders": orders})
+
+@login_required
+def report_hub(request):
+    return render(request, "sales_process/report_hub.html")
 
 
+def search_reports(request):
+    """
+    Search across multiple models
+    """
+    query = request.GET.get("q", "").strip()
+    results = {}
 
+    if query:
+        # Sales search
+        sales = Sale.objects.filter(
+            Q(order_id__icontains=query) |
+            Q(customer__name__icontains=query) |
+            Q(stock__imei_number__icontains=query)
+        ).select_related("customer", "stock")[:10]
+        results["sales"] = sales
 
+        # Stocks
+        stocks = Stock.objects.filter(
+            Q(imei_number__icontains=query) |
+            Q(product__model_name__icontains=query)
+        ).select_related("product")[:10]
+        results["stocks"] = stocks
+
+        # Customers
+        customers = Profile.objects.filter(
+            Q(full_name__icontains=query) |
+            Q(phone_number__icontains=query) |
+            Q(national_id__icontains=query)
+        )[:10]
+        results["customers"] = customers
+
+        # Users
+        users = CustomUser.objects.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query)
+        )[:10]
+        results["users"] = users
+
+    return render(request, "reports/search_results.html", {"results": results})
+
+def download_report(request, model, format):
+    """
+    Download report in CSV/XLSX
+    """
+    buffer = io.BytesIO()
+
+    if model == "sales":
+        qs = Sale.objects.select_related("customer", "stock", "sold_by")
+        data = [{
+            "Order ID": s.order_id,
+            "Customer": s.customer.name,
+            "IMEI": s.stock.imei_number,
+            "Product": s.stock.product.model_name,
+            "Price": s.stock.product.price,
+            "Sold By": s.sold_by.username if s.sold_by else None,
+            "Date": s.sales_date.replace(tzinfo=None) if s.sales_date else None
+        } for s in qs]
+    elif model == "stocks":
+        qs = Stock.objects.select_related("product")
+        data = [{
+            "IMEI": s.imei_number,
+            "Product": s.product.model_name,
+            "RAM": s.product.model_ram,
+            "Storage": s.product.model_storage,
+            "Status": s.status,
+        } for s in qs]
+    elif model == "customers":
+        qs = Profile.objects.all()
+        data = [{
+            "Name": c.full_name,
+            "Phone": c.phone_number,
+            "ID": c.national_id,
+            "Region": c.region,
+        } for c in qs]
+    elif model == "users":
+        qs = CustomUser.objects.all()
+        data = [{
+            "Username": u.username,
+            "Role": u.role,
+            "Email": u.email,
+            "Active": u.is_active,
+        } for u in qs]
+    else:
+        return HttpResponse("Invalid model", status=400)
+
+    df = pd.DataFrame(data)
+
+    if format == "csv":
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{model}_report.csv"'
+        df.to_csv(path_or_buf=response, index=False)
+        return response
+    elif format == "xlsx":
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="{model}_report.xlsx"'
+        df.to_excel(buffer, index=False)
+        response.write(buffer.getvalue())
+        return response
+    else:
+        return HttpResponse("Invalid format", status=400)
 
     
     

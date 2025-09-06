@@ -210,7 +210,7 @@ body.htmx-swapping {
             transition: opacity 200ms ease-in;
         }
   </style>
-  <body class="htmx-transition with-welcome-text" style="zoom: 80%;">
+  <body class="htmx-transition with-welcome-text">
     <div class="container-scroller">
       <div class="row p-0 m-0 proBanner" id="proBanner">
         <div class="col-md-12 p-0 m-0">
@@ -238,7 +238,7 @@ body.htmx-swapping {
         <div class="navbar-menu-wrapper d-flex align-items-top">
           <ul class="navbar-nav">
             <li class="nav-item fw-semibold d-none d-lg-block ms-0">
-              <h4 class="welcome-text">Hello, <span class="text-black fw-bold" style="font-size: 18px">{{user.profile.full_name}}</span></h4>
+              <h4 class="welcome-text">Hello,👋 <span class="text-black fw-bold" style="font-size: 18px">{{user.profile.full_name}} 😄</span></h4>
               <h3 class="welcome-sub-text"></h3>
             </li>
           </ul>
@@ -247,7 +247,7 @@ body.htmx-swapping {
             <li class="nav-item d-none d-lg-block">
               <div id="datepicker-popup" class="input-group date datepicker navbar-date-picker">
                 <span class="input-group-addon input-group-prepend border-right">
-                  <span class="icon-calendar input-group-text calendar-icon"></span>
+                  
                 </span>
                 <input type="text" class="form-control">
               </div>
@@ -315,6 +315,7 @@ body.htmx-swapping {
               </a>
             </li>
            
+            {% if user.profile.role == 'admin' %}
             <li class="nav-item">
               <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic" >
                 <i class="menu-icon mdi mdi-floor-plan"></i>
@@ -329,6 +330,7 @@ body.htmx-swapping {
                 </ul>
               </div>
             </li>
+            {% endif %}
             <li class="nav-item">
               <a class="nav-link" data-bs-toggle="collapse" href="#form-elements" aria-expanded="false" aria-controls="form-elements">
                 <i class="menu-icon mdi mdi-card-text-outline"></i>
@@ -361,8 +363,10 @@ body.htmx-swapping {
               </a>
               <div class="collapse" id="tables">
                 <ul class="nav flex-column sub-menu">
-                  <li class="nav-item"> <a class="nav-link" href="pages/tables/basic-table.html">Stocks</a></li>
-                  <li class="nav-item"> <a class="nav-link" href="pages/tables/basic-table.html">Sales</a></li>
+                  <li class="nav-item"> <a class="nav-link {% if request.resolver_match.url_name == 'report-hub' %} active {% endif %}"
+                     href="{% url 'report-hub' %}"
+                     aria-selected="{% if request.resolver_match.url_name == 'report-hub' %}true{% else %}false{% endif %}"
+                     >Hub🏬</a></li>
                 </ul>
               </div>
             </li>

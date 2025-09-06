@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Receipt {{ sale.order_id }}</title>
+    <title>Receipt {{ order_id }}</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -28,8 +28,8 @@
     </div>
 
     <div class="section">
-        <strong>Receipt ID:</strong> {{ sale.order_id }}<br>
-        <strong>Date:</strong> {{ sale.sales_date|date:"d M Y H:i" }}
+        <strong>Receipt ID:</strong> {{ order_id }}<br>
+        <strong>Date:</strong> {{ sales_date|date:"d M Y H:i" }}
     </div>
 
     <div class="section">
@@ -37,7 +37,7 @@
         <br>
        <small> Name: {{ sale.sold_by.profile.full_name }}</small>
        <br>
-       <small>Username: {{ sale.sold_by.profile.username }}</small>
+       <small>Username: {{ sale.sold_by.username }}</small>
         <br>
         <small>Phone: {{ sale.sold_by.profile.phone_number }}</small>
      
@@ -76,15 +76,18 @@
         </tbody>
     </table>
 
-    <div class="mt-3 text-end">
-        <p><strong>Total Quantity:</strong> {{ total_quantity }}</p>
-        <p><strong>Total Amount:</strong> {{ total_amount }}</p>
-    </div>
+   <div class="d-flex flex-column align-items-end mt-3" style="margin-right: 20px;">
+    <p><strong>Total Quantity:</strong> {{ total_quantity }}</p>
+    <p><strong>Total Amount:</strong> {{ total_amount }}</p>
 
-    <div class="text-center mt-4">
+    <div class="mt-4 text-end">
         <p>Scan QR Code to track this receipt:</p>
-        <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code" class="img-thumbnail" style="width:150px;">
+        <img src="data:image/png;base64,{{ qr_code_base64 }}" 
+             alt="QR Code" 
+             class="img-thumbnail" 
+             style="width:150px;">
     </div>
+</div>
     </div>
 
     <div class="footer">
