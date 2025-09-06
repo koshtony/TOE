@@ -2,6 +2,9 @@ from django import forms
 from .models import Product, Stock, StockHistory,Customer,Sale
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.urls import reverse
+from django.utils import timezone
+import uuid
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -89,15 +92,26 @@ class SaleForm(forms.Form):
 
             # 2. Create the Sale
             
-            sale = Sale.objects.create(customer=customer, sold_by=sold_by)
+            order_id = f"ORD-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:5].upper()}"
+            
+            #sale = Sale.objects.create(customer=customer, sold_by=sold_by)
             # 3. Process each IMEI
             errors = []
             for imei in imeis:
                 try:
                     stock = Stock.objects.get(imei_number=imei, status="in_stock")
+                    
+                    if not stock.assigned_to:
+                        
+                        errors.append(f"❌ IMEI {imei} not assigned to any user.")
+                        continue
+                    
+                    if stock.assigned_to != sold_by:
+                        errors.append(f"❌ IMEI {imei} not assigned to {sold_by}.")
+                        continue
 
                     # Create SaleItem
-                    sale = Sale.objects.create(customer=customer, sold_by=sold_by,stock=stock)
+                    sale = Sale.objects.create(customer=customer, sold_by=sold_by,stock=stock,order_id=order_id)
                     
                     print(sale)
                     # Update stock
@@ -118,9 +132,11 @@ class SaleForm(forms.Form):
             print(errors)
             if errors:
                 # If some failed, still return sale but raise warning
-                return sale, errors
+                return None, errors
+            
+            receipt_url = reverse("sale-receipt", args=[sale.order_id])
 
-            return sale, None
+            return sale,receipt_url
         
 
 class SaleSearchForm(forms.Form):
@@ -138,3 +154,4 @@ class SaleSearchForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"})
     )
         
+

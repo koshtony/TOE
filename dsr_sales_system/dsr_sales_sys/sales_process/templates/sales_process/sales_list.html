@@ -32,8 +32,8 @@
                     <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
                       <div class="row">
 
-                           <div class="container mt-5">
-  <div class="card shadow-lg p-4">
+                           <div class="container mt-5" >
+  <div class="card shadow-lg p-4" >
 
     <h3 class="mb-4">Sales</h3>
 <div class="container py-4">
@@ -94,6 +94,7 @@
   </div>
 
   
+
 </div>
     
 
@@ -117,6 +118,64 @@
             </div>
           </div>
 
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Confirm Return</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Do you want to:</p>
+        <ul>
+          <li><strong>Return to stock</strong> → This will reverse the sale and put the product back as available.</li>
+          <li><strong>Mark as returned</strong> → This will keep the sale but mark it as returned.</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <form id="returnForm" hx-post="{% url 'return-sale' %}" hx-target="#sales-results">
+          {% csrf_token %}
+          <input type="hidden" name="sale_id" id="saleIdInput" readonly>
+          <br>
+          <button type="submit" name="action" value="mark" class="btn btn-secondary">Mark Returned</button>
+          <button type="submit" name="action" value="return" class="btn btn-danger">Return to Stock</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+function showReturnModal(saleId) {
+
+
+  // modal element
+  var modalEl = document.getElementById('returnModal');
+  var form = document.getElementById('returnForm');
+  var hiddenInput = document.getElementById('saleIdInput');
+
+  // set hidden input
+  hiddenInput.value = saleId;
+
+  // update hx-target (row refresh)
+  //form.setAttribute("hx-target", "#sale-row-" + saleId);
+
+  // show modal (Bootstrap 5 way)
+  var modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+// hide modal after HTMX success
+document.addEventListener("htmx:afterOnLoad", function (evt) {
+  var modalEl = document.getElementById('returnModal');
+  var modal = bootstrap.Modal.getInstance(modalEl);
+  if (modal) {
+    modal.hide();
+  }
+});
+</script>
+
 {% endblock mainContent %}
+
 
 

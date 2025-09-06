@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from datetime import date
+import uuid
 
 
 class Product(models.Model):
@@ -183,6 +184,14 @@ class Sale(models.Model):
         blank=True,
         related_name="sales_made"
     )
+
+    order_id = models.CharField(max_length=20,null=True,blank=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            # Example: ORD-20250906-XXXX
+            self.order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Sale #{self.id} to {self.customer.name}"

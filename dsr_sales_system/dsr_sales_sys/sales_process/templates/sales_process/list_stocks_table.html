@@ -4,6 +4,7 @@
                 <th>ID</th>
                 <th>Product</th>
                 <th>IMEI</th>
+                <th>Price</th>
                 <th>Status</th>
                 <th>Assigned To</th>
                 <th>Actions</th>
@@ -15,6 +16,7 @@
     <td>{{ stock.pk }}</td>
     <td>{{ stock.product.model_name }}</td>
     <td>{{ stock.imei_number }}</td>
+    <td>{{stock.product.price}}</td>
     <td>{{ stock.status }}</td>
     <td>
         {% if stock.assigned_to %}

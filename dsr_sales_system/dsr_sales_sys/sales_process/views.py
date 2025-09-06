@@ -1,4 +1,4 @@
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render,get_object_or_404,get_list_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from .forms import ProductForm,BulkStockForm,SaleForm,SaleSearchForm
@@ -9,13 +9,14 @@ from django.contrib import messages
 from django.db.models import Q,Count,F
 from django.db.models.functions import TruncDay, TruncMonth,TruncWeek
 from django.utils.timezone import now
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse,Http404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from datetime import date, timedelta
 from django.utils.timezone import localdate
 from django.core.cache import cache
+from .operations import generate_qr_code
 import csv
 from io import StringIO
 import uuid
@@ -538,25 +539,30 @@ def create_sale(request):
     if request.method == "POST":
         form = SaleForm(request.POST)
         if form.is_valid():
-            sale, errors = form.process_sale(sold_by=request.user)
-
-            if errors:
+        
+            sale, results = form.process_sale(sold_by=request.user)
+            
+            print(results)
+            
+            if sale and results:
                 return render(request, "sales_process/sales_message.html", {
-                    "status": "warning",
+                    "status": "success",
                     "sale": sale,
-                    "errors": errors
+                    "message": f"✅ Sale created successfully! "
+                               f"<a href='{results}' target='_blank'>Download Receipt</a>"
                 })
 
-            return render(request, "sales_process/sales_message.html", {
-                "status": "success",
-                "sale": sale,
-                "errors": None
-            })
+            else:
+                return render(request, "sales_process/sales_message.html", {
+                    "status": "error",
+                    "message": results
+                })
 
+           
         # invalid form
         return render(request, "sales_process/sales_message.html", {
             "status": "error",
-            "form": form
+            "message": form.errors
         })
 
     # ✅ GET: show form
@@ -593,31 +599,76 @@ def sales_list(request):
     return render(request, "sales_process/sales_list.html", {"sales": sales})
 @csrf_exempt
 @transaction.atomic
-def return_sale(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
-    stock = sale.stock
-
-    # update stock status back to available
-    stock.status = "available"
-    stock.save()
-
-    # add to history
-    StockHistory.objects.create(
-        stock=stock,
-        action="Returned from customer",
-        transferred_to=None,
-        transferred_from=sale.sold_by,
-        performed_on=timezone.now()
-    )
-
-    # delete the sale record (or mark it as returned instead if you prefer)
-    sale.delete()
+def return_sale(request):
     
-    sales = Sale.objects.select_related("stock").order_by("-sales_date")
+    if request.method=="POST":
+        
+        sale_id = request.POST.get("sale_id")
+        action = request.POST.get("action")
+        sale = get_object_or_404(Sale, id=sale_id)
+        
+        stock = sale.stock
+        
+        if action == "mark":
+        # update stock status back to available
+            sale.is_returned = True
+            sale.save()
+            stock.status = "returned"
+            stock.save()
+            msg = 'has been marked as returned'
+           
+        elif action == "return":            
+            stock.status = "in_stock"
+            stock.save()
+            sale.delete()
+            
+            msg = 'has been returned to stock'
+        else:
+            return HttpResponse("Invalid action", status=400)
+            
 
-    resp = f'<div class="alert alert-success" role="alert">Sale #{sale.stock.imei_number} has been returned.</div>'
+        # add to history
+        StockHistory.objects.create(
+            stock=stock,
+            action="Returned from customer",
+            transferred_to=None,
+            transferred_from=sale.sold_by,
+            performed_on=timezone.now()
+        )
 
-    return render(request, "sales_process/sales_list_table.html", {"sales": sales,"resp":resp})
+        # delete the sale record (or mark it as returned instead if you prefer)
+        
+        sales = Sale.objects.select_related("stock").order_by("-sales_date")
+
+        resp = f'<div class="alert alert-success" role="alert">Sale #{sale.stock.imei_number} {msg}.</div>'
+
+        return render(request, "sales_process/sales_list_table.html", {"sales": sales,"resp":resp})
+
+
+def sale_receipt(request, order_id):
+    
+    sales = get_list_or_404(Sale, order_id=order_id)
+    company = CompanyProfile.objects.first()
+    
+    if not sales:
+        raise Http404("<h1>Sale not found</h1>")
+    
+    customer = sales[0].customer
+    
+    qr_code_base64 = generate_qr_code(order_id)
+
+    total_amount = sum(sale.stock.product.price for sale in sales)
+    total_quantity = len(sales)
+    
+    return render(request, "sales_process/sales_receipt.html", {
+        "sales": sales,
+        "company": company,
+        "customer": customer,
+        "total_amount": total_amount,
+        "total_quantity": total_quantity,
+        "qr_code_base64": qr_code_base64,
+        
+    })
 
 
 

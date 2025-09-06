@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt {{ sale.order_id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .company-logo img { height: 70px; }
+        .company { font-size: 18px; font-weight: bold; }
+        .section { margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table, th, td { border: 1px solid #ccc; }
+        th, td { padding: 8px; text-align: left; }
+        .footer { margin-top: 30px; font-size: 12px; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-logo">
+            {% if company.logo %}
+                <img src="{{ company.logo.url }}" alt="Company Logo">
+            {% endif %}
+        </div>
+        <div class="company">{{ company.name }}</div>
+        <div>{{ company.address }}</div>
+        <div>{{ company.phone }} | {{ company.email }}</div>
+    </div>
+
+    <div class="section">
+        <strong>Receipt ID:</strong> {{ sale.order_id }}<br>
+        <strong>Date:</strong> {{ sale.sales_date|date:"d M Y H:i" }}
+    </div>
+
+    <div class="section">
+        <strong>Sold By:</strong> 
+        <br>
+       <small> Name: {{ sale.sold_by.profile.full_name }}</small>
+       <br>
+       <small>Username: {{ sale.sold_by.profile.username }}</small>
+        <br>
+        <small>Phone: {{ sale.sold_by.profile.phone_number }}</small>
+     
+    </div>
+
+    <div class="section">
+        <strong>Customer Details:</strong><br>
+        {{ customer.name }}<br>
+        {{ customer.phone }}<br>
+        {{ customer.email }}<br>
+        {{ customer.address }}
+    </div>
+
+    <div class="section">
+        <strong>Sold Item:</strong>
+       <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Model</th>
+                <th>Storage / RAM</th>
+                <th>IMEI</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr>
+                <td>{{ sale.order_id }}</td>
+                <td>{{ sale.stock.product.model_name }}</td>
+                <td>{{ sale.stock.product.model_storage }} / {{ sale.stock.product.model_ram }}</td>
+                <td>{{ sale.stock.imei_number }}</td>
+                <td>{{ sale.stock.product.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="mt-3 text-end">
+        <p><strong>Total Quantity:</strong> {{ total_quantity }}</p>
+        <p><strong>Total Amount:</strong> {{ total_amount }}</p>
+    </div>
+
+    <div class="text-center mt-4">
+        <p>Scan QR Code to track this receipt:</p>
+        <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code" class="img-thumbnail" style="width:150px;">
+    </div>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for your purchase!</p>
+        <p>Keep this receipt for your records.</p>
+    </div>
+</body>
+</html>

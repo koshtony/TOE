@@ -1,41 +1,58 @@
-{{resp | safe}}
+{{ resp | safe }}
 <table class="table table-bordered table-hover bg-white shadow-sm">
     <thead class="table-dark">
       <tr>
+        <th>Order 🔢</th>
         <th>IMEI</th>
         <th>Product</th>
         <th>Customer</th>
         <th>Email</th>
         <th>Phone</th>
         <th>Id Number</th>
-        
+        <th>Status</th>
         <th>Sold By:👤</th>
         <th>Date Sold</th>
         <th>Actions</th>
+        <th> Receipt ⬇️</th>
       </tr>
     </thead>
     <tbody>
       {% for sale in sales %}
     
-        <tr>
+        <tr id="sale-row-{{ sale.id }}">
+          <td>{{ sale.order_id }}</td>
           <td>{{ sale.stock.imei_number }}</td>
           <td>{{ sale.stock.product.model_name }} {{ sale.stock.product.model_ram }}+{{ sale.stock.product.model_storage }}</td>
           <td>{{ sale.customer.name }}</td>
           <td>{{ sale.customer.email }}</td>
           <td>{{ sale.customer.phone }}</td>
           <td>{{ sale.customer.id_number }}</td>
+          {% if sale.stock.status == "returned" %}
+            <td><span class="badge bg-warning">Returned</span></td>
+          {% else %}
+            <td><span class="badge bg-success">Sold</span></td>
+          {% endif %}
+        
           <td>{{ sale.sold_by.profile.full_name }}</td>
           <td>{{ sale.sales_date|date:"d M Y H:i" }}</td>
           <td>
+            {% if sale.stock.status == "returned" %}
+              <span class="badge bg-warning">Returned</span>
+            {% else %}
+              <button class="btn btn-sm btn-warning" onclick="showReturnModal('{{ sale.id }}')">
+                      
+                Return
+              </button>
+            {% endif %}
+          </td>
+          <td>
             <a
-              class="btn btn-sm btn-danger"
-              hx-post="{% url 'return-sale' sale.pk %}"
-              hx-target="#sales-results"
-              hx-swap="innerHTML"
-              onclick="return confirm('Are you sure you want to return this sale?')"
+              class="btn btn-sm btn-primary"
+              href="{% url 'sale-receipt' sale.order_id %}"
+              target="_blank"
             >
-              Return
-          </a>
+              <i class="mdi mdi-printer"></i>
+            </a>
           </td>
         </tr>
       {% empty %}
@@ -45,3 +62,4 @@
       {% endfor %}
     </tbody>
   </table>
+

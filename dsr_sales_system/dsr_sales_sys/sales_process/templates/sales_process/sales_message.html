@@ -1,32 +1,36 @@
 {% if status == "success" %}
 <div class="alert alert-success rounded-lg p-3 mb-3">
-    ✅ Sale <strong>#{{ sale.id }}</strong> created successfully! <br>
+    ✅ Sale <strong>#{{ sale.order_id }}</strong> created successfully! <br>
     Customer: <strong>{{ sale.customer.name }}</strong> <br>
-    Items:
-    <ul class="list-disc ml-6">
-        {% for item in sale.items.all %}
-            <li>{{ item.stock.imei_number }}</li>
-        {% endfor %}
-    </ul>
+    <br>
+   
+
+    <div class="mt-3">
+        📄{{message}}
+    </div>
 </div>
 
 {% elif status == "warning" %}
 <div class="alert alert-warning rounded-lg p-3 mb-3">
-    ⚠️ Sale <strong>#{{ sale.id }}</strong> created, but some IMEIs failed: <br>
+    ⚠️ Sale <strong>#{{ sale.order_id }}</strong> created, but some IMEIs failed: <br>
     <ul class="list-disc ml-6">
         {% for err in errors %}
             <li>{{ err }}</li>
         {% endfor %}
+
     </ul>
+
+    <div class="mt-3">
+        📄 {{message}}
+    </div>
 </div>
 
 {% elif status == "error" %}
 <div class="alert alert-danger rounded-lg p-3 mb-3">
     ❌ Sale not created. Please fix the errors below:
-    <ul class="list-disc ml-6">
-        {% for field, errors in form.errors.items %}
-            <li>{{ field }}: {{ errors|join:", " }}</li>
-        {% endfor %}
-    </ul>
+    {{message}}
+   {% for err in message %}
+            <li>{{ err }}</li>
+{% endfor %}
 </div>
 {% endif %}
