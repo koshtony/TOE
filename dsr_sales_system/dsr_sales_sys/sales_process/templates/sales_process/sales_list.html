@@ -32,7 +32,39 @@
                     <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
                       <div class="row">
 
-                           <div class="container mt-5" >
+
+  <div class="container mt-5" >
+    <div class="container mt-3">
+  <div class="row text-center mb-4">
+    <!-- Today -->
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 bg-success text-white rounded-3">
+        <h6>Today</h6>
+        <p><strong>{{ summary.today_qty }}</strong> items</p>
+        <p>💰 {{ summary.today_amount|default:"0" }}</p>
+      </div>
+    </div>
+
+    <!-- This Month -->
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 bg-primary text-white rounded-3">
+        <h6>This Month</h6>
+        <p><strong>{{ summary.month_qty }}</strong> items</p>
+        <p>💰 {{ summary.month_amount|default:"0" }}</p>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 bg-dark text-white rounded-3">
+        <h6>Total Sales</h6>
+        <p><strong>{{ summary.total_qty }}</strong> items</p>
+        <p>💰 {{ summary.total_amount|default:"0" }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
   <div class="card shadow-lg p-4" >
 
     <h3 class="mb-4">Sales</h3>

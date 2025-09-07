@@ -6,7 +6,12 @@
                 <th>IMEI</th>
                 <th>Price</th>
                 <th>Status</th>
+                <th>Age</th>
                 <th>Assigned To</th>
+                <th>Assigned On</th>
+                <th>Allocated By</th>
+                <th>Added By</th>
+                 <th>Added On</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -18,12 +23,34 @@
     <td>{{ stock.imei_number }}</td>
     <td>{{stock.product.price}}</td>
     <td>{{ stock.status }}</td>
+    {% if stock.status == 'sold' %}
+        <td><span class="text-muted warning">Sold</span></td>
+    {% else %}
+        <td>{{ stock.days_in_stock }} days</td>
+    {% endif %}
+
     <td>
         {% if stock.assigned_to %}
-            👤 {{ stock.assigned_to.username }}
+            👤 {{ stock.assigned_to.profile.full_name }}
         {% else %}
             <span class="text-muted">Not assigned</span>
         {% endif %}
+    </td>
+    <td>
+        {{ stock.last_assigned_date|date:"d M Y H:i" }}
+    </td>
+    <td>
+        {% if stock.allocated_by %}
+            👤 {{ stock.allocated_by.profile.full_name }}
+        {% else %}
+            <span class="text-muted">Not allocated</span>
+        {% endif %}
+    </td>
+    <td>
+        👤 {{ stock.added_by.profile.full_name }}
+    </td>
+    <td>
+        {{ stock.date_since_stock_in }}
     </td>
     <td>
         <a class="btn btn-sm btn-primary"

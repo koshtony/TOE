@@ -80,4 +80,3 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         # ensures profile updates if already exists
         instance.profile.save()
-        

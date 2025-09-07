@@ -4,7 +4,7 @@ from .views import home_view,create_product,list_products,filter_products,bulk_a
     list_stocks,allocate_stock,stock_history,filter_stocks,search_users,select_user,\
         bulk_allocate_stock,search_users_for_bulk_allocation,download_delivery_note,\
             create_sale,sales_list,return_sale,sales_chart_data,sales_per_model_data,\
-                sales_per_product_data,sale_receipt,order_list,report_hub,search_reports,download_report
+                sales_per_product_data,sale_receipt,order_list,report_hub,search_reports,download_report,export_report
 
 urlpatterns = [
     path('', home_view, name='home'),
@@ -32,6 +32,7 @@ urlpatterns = [
     path('report-hub/', report_hub, name='report-hub'),
     path('search-reports/', search_reports, name='search-reports'),
     path('download-report/<str:model>/<str:format>/', download_report, name='download-report'),
+    path('export-report/<str:model>/<str:format>/', export_report, name='export-report'),
     
     
 ]

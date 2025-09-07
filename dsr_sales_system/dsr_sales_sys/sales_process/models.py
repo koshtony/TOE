@@ -111,6 +111,13 @@ class Stock(models.Model):
         blank=True,
         related_name="stocks_assigned"
     )
+    allocated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="stocks_allocated"
+    )
     last_assigned_date = models.DateField(null=True, blank=True)
 
     # 🔑 This is stored for reference but also recomputed when needed

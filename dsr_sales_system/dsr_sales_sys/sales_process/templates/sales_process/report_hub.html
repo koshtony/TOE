@@ -5,10 +5,11 @@
 
   <!-- Search -->
   <form 
-      hx-get="{% url 'search-reports' %}" 
+      hx-post="{% url 'search-reports' %}" 
       hx-target="#search-results"
-      hx-trigger="keyup changed delay:500ms"
+   
       class="d-flex mb-3">
+      {% csrf_token %}
     <input type="text" name="q" class="form-control me-2" placeholder="🔍 Search IMEI, Customer, Order ID, etc...">
     <button class="btn btn-primary" type="submit">Search</button>
   </form>

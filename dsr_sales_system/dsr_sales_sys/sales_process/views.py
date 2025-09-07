@@ -5,11 +5,12 @@ from .forms import ProductForm,BulkStockForm,SaleForm,SaleSearchForm
 from .models import Product,Stock,StockHistory,Sale,Customer
 from manage_users.models import CompanyProfile,Profile, CustomUser
 from django.db import transaction
+from django.apps import apps
 from django.contrib import messages
-from django.db.models import Q,Count,F
+from django.db.models import Q,Count,F,Min,Sum
 from django.db.models.functions import TruncDay, TruncMonth,TruncWeek
 from django.utils.timezone import now
-from django.http import HttpResponse, JsonResponse,Http404
+from django.http import HttpResponse, JsonResponse,Http404,FileResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
@@ -17,6 +18,9 @@ from datetime import date, timedelta
 from django.utils.timezone import localdate
 from django.core.cache import cache
 from .operations import generate_qr_code
+from django.utils.timezone import is_aware
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 import pandas as pd
 import csv
 from io import StringIO
@@ -313,13 +317,34 @@ User = get_user_model()
 
 @login_required
 def list_stocks(request):
-    stocks = Stock.objects.select_related("product").all()
+    
+    user = request.user
+    
+    if user.role == "manager" or user.role == "admin":
+        
+        stocks = Stock.objects.select_related("product", "assigned_to")[:5]
+        
+    else: 
+        
+        stocks = Stock.objects.select_related("product", "assigned_to").filter(assigned_to=user)[:5]
+    
     return render(request, "sales_process/list_stocks.html", {"stocks": stocks})
 @login_required
 def filter_stocks(request):
     """HTMX filter endpoint – returns only the table"""
     query = request.GET.get("q", "").strip()
-    stocks = Stock.objects.all().select_related("product", "assigned_to")
+    
+    user = request.user
+    
+    if user.role == "manager" or user.role == "admin":
+        
+        stocks = Stock.objects.all().select_related("product", "assigned_to")
+        
+    else: 
+        
+        stocks = Stock.objects.all().select_related("product", "assigned_to").filter(assigned_to=user)
+    
+  
 
     if query:
         stocks = stocks.filter(
@@ -346,6 +371,7 @@ def allocate_stock(request, imei_number):
         old_user = stock.assigned_to
 
         stock.assigned_to = new_user
+        stock.allocated_by = request.user
         stock.last_assigned_date = timezone.now().date()
         stock.save()
 
@@ -439,6 +465,8 @@ def bulk_allocate_stock(request):
                 stock = Stock.objects.get(imei_number=imei)
                 previous_user = stock.assigned_to
                 stock.assigned_to = user
+                stock.allocated_by = request.user
+                stock.last_assigned_date = timezone.now().date()
                 stock.save()
                 
                 allocated_items.append(stock)
@@ -573,7 +601,17 @@ def create_sale(request):
 
 @login_required
 def sales_list(request):
-    sales = Sale.objects.select_related("stock").order_by("-sales_date")
+    
+    user = request.user
+    
+    if user.role == "manager" or user.role == "admin":	
+        sales = Sale.objects.select_related("stock", "sold_by").order_by("-sales_date")
+    
+    else:
+        sales = Sale.objects.select_related("stock", "sold_by").filter(sold_by=user).order_by("-sales_date")
+        
+    
+
     
     form = SaleSearchForm(request.GET or None)
     
@@ -582,7 +620,14 @@ def sales_list(request):
         product_name = request.POST.get("product_name")
         start_date = request.POST.get("start_date")
         end_date = request.POST.get("end_date")
-
+        
+        if user.role == "manager" or user.role == "admin":	
+            sales = Sale.objects.select_related("stock", "sold_by").order_by("-sales_date")
+    
+        else:
+            sales = Sale.objects.select_related("stock", "sold_by").filter(sold_by=user).order_by("-sales_date")
+        
+        
         if imei:
             sales = sales.filter(stock__imei_number=imei)
         if product_name:
@@ -596,9 +641,31 @@ def sales_list(request):
         
         return render(request, "sales_process/sales_list_table.html", {"sales": sales})
     
+    today = now().date()
+    month_start = today.replace(day=1)
+
+    today_sales = sales.filter(sales_date__date=today).aggregate(
+        qty=Count("id"), amount=Sum("stock__product__price")
+    )
+
+    month_sales = sales.filter(sales_date__date__gte=month_start).aggregate(
+        qty=Count("id"), amount=Sum("stock__product__price")
+    )
+
+    total_sales = sales.aggregate(qty=Count("id"), amount=Sum("stock__product__price"))
+
+    summary = {
+        "today_qty": today_sales["qty"] or 0,
+        "today_amount": today_sales["amount"] or 0,
+        "month_qty": month_sales["qty"] or 0,
+        "month_amount": month_sales["amount"] or 0,
+        "total_qty": total_sales["qty"] or 0,
+        "total_amount": total_sales["amount"] or 0,
+    }
     
+    sales = sales[:5]
     
-    return render(request, "sales_process/sales_list.html", {"sales": sales})
+    return render(request, "sales_process/sales_list.html", {"sales": sales, "summary": summary})
 @login_required
 @csrf_exempt
 @transaction.atomic
@@ -680,57 +747,79 @@ def sale_receipt(request, order_id):
 @login_required   
 def order_list(request):
     
+    user = request.user
+
+    # Base queryset with aggregations
     orders = (
-        Sale.objects.values("order_id")
-        .distinct()
-        .order_by("-sales_date")
+        Sale.objects.values("order_id", "customer__name", "sold_by__profile__full_name")
+        .annotate(
+            date=Min("sales_date"),
+            total_items=Count("id"),
+            total_amount=Sum(F("stock__product__price")),
+        )
+        .order_by("-date")
     )
-    return render(request, "sales_process/order_list.html", {"orders": orders})
+
+    # Restrict if user is sales (not manager/admin)
+    if user.role not in ["manager", "admin"]:
+        orders = orders.filter(sold_by=user)
+
+    return render(
+        request,
+        "sales_process/order_list.html",
+        {"orders": orders},
+    )
 
 @login_required
 def report_hub(request):
     return render(request, "sales_process/report_hub.html")
 
 
+
 def search_reports(request):
     """
-    Search across multiple models
+    Search across all models dynamically.
+    Only searches text-like fields (CharField, TextField).
     """
-    query = request.GET.get("q", "").strip()
-    results = {}
+    if request.method == "POST":
+        query = request.POST.get("q", "").strip()
+        results = {}
 
-    if query:
-        # Sales search
-        sales = Sale.objects.filter(
-            Q(order_id__icontains=query) |
-            Q(customer__name__icontains=query) |
-            Q(stock__imei_number__icontains=query)
-        ).select_related("customer", "stock")[:10]
-        results["sales"] = sales
+        if query:
+            for model in apps.get_models():
+                try:
+                    # Collect searchable fields
+                    text_fields = [
+                        f.name for f in model._meta.fields
+                        if f.get_internal_type() in ["CharField", "TextField"]
+                    ]
 
-        # Stocks
-        stocks = Stock.objects.filter(
-            Q(imei_number__icontains=query) |
-            Q(product__model_name__icontains=query)
-        ).select_related("product")[:10]
-        results["stocks"] = stocks
+                    if not text_fields:
+                        continue
 
-        # Customers
-        customers = Profile.objects.filter(
-            Q(full_name__icontains=query) |
-            Q(phone_number__icontains=query) |
-            Q(national_id__icontains=query)
-        )[:10]
-        results["customers"] = customers
+                    # Build OR filter across all text fields
+                    q_obj = Q()
+                    for field in text_fields:
+                        q_obj |= Q(**{f"{field}__icontains": query})
 
-        # Users
-        users = CustomUser.objects.filter(
-            Q(username__icontains=query) |
-            Q(email__icontains=query)
-        )[:10]
-        results["users"] = users
+                    qs = model.objects.filter(q_obj)[:50]  # cap results per model
 
-    return render(request, "reports/search_results.html", {"results": results})
+                    if qs.exists():
+                        results[model.__name__] = {
+                            "fields": [f.name for f in model._meta.fields],
+                            "objects": qs,
+                        }
+                except Exception as e:
+                    # Skip models that can’t be queried
+                    print(f"Skipping {model.__name__}: {e}")
+                    continue
+
+        return render(
+            request,
+            "sales_process/report_search_results.html",
+            {"results": results, "query": query},
+        )
+
 
 def download_report(request, model, format):
     """
@@ -792,6 +881,83 @@ def download_report(request, model, format):
         return response
     else:
         return HttpResponse("Invalid format", status=400)
+    
+@login_required    
+def export_report(request, model, format):
+    
+    query = request.GET.get("q", "").strip()
 
+    # Resolve model
+    try:
+        Model = apps.get_model(app_label="sales_process", model_name=model)  # change app_label
+    except LookupError:
+        raise Http404("Model not found")
+
+    # Collect searchable fields
+    text_fields = [
+        f.name for f in Model._meta.fields
+        if f.get_internal_type() in ["CharField", "TextField"]
+    ]
+
+    qs = Model.objects.all()
+    if query and text_fields:
+        from django.db.models import Q
+        q_obj = Q()
+        for field in text_fields:
+            q_obj |= Q(**{f"{field}__icontains": query})
+        qs = qs.filter(q_obj)
+
+    if not qs.exists():
+        return HttpResponse("⚠️ No results found.", status=404)
+
+    fields = [f.name for f in Model._meta.fields]
+    data = []
+    for obj in qs:
+        row = {}
+        for field in fields:
+            val = getattr(obj, field, "")
+            if hasattr(val, "isoformat") and is_aware(val):
+                val = val.replace(tzinfo=None)
+            row[field] = val
+        data.append(row)
+
+    df = pd.DataFrame(data)
+
+    # Export formats
+    if format == "csv":
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{model}_report.csv"'
+        df.to_csv(path_or_buf=response, index=False)
+        return response
+
+    elif format == "excel":
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="{model}_report.xlsx"'
+        df.to_excel(response, index=False, engine="openpyxl")
+        return response
+
+    elif format == "pdf":
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        textobject = p.beginText(40, 800)
+        textobject.setFont("Helvetica", 10)
+
+        # Title
+        textobject.textLine(f"{model} Report")
+        textobject.textLine("")
+
+        # Data rows
+        for row in data[:100]:  # limit rows in PDF
+            line = ", ".join(f"{k}: {v}" for k, v in row.items())
+            textobject.textLine(line[:120])  # truncate long lines
+        p.drawText(textobject)
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename=f"{model}_report.pdf")
+
+    else:
+        return HttpResponse("⚠️ Unsupported format", status=400)
     
     
