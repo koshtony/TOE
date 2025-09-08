@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/admin_custom.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="login-container">
+    <div class="login-box">
+        <div class="logo">
+            <img src="{% static 'assets/img/logo.png' %}" alt="Company Logo" height="60">
+        </div>
+        <h2 class="login-title">Sign in Decoire Group</h2>
+        <form action="{% url 'admin:login' %}" method="post" id="login-form">
+            {% csrf_token %}
+            <div class="form-row">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+            </div>
+            <div class="form-row">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+            </div>
+            {% if form.errors %}
+                <p class="errornote">Please enter a correct username and password.</p>
+            {% endif %}
+            <div class="submit-row">
+                <input type="submit" value="Login" class="login-btn">
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

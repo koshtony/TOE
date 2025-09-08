@@ -12,7 +12,7 @@ class CustomUserForm(UserCreationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ["full_name","phone_number", "date_of_birth", "national_id", "region","date_of_joining", "gender", "id_document", "photo"]
+        fields = ["full_name","phone_number", "date_of_birth", "national_id", "region","group","date_of_joining", "gender","id_document", "photo"]
 
 
 class CustomUserUpdateForm(forms.ModelForm):
@@ -23,7 +23,7 @@ class CustomUserUpdateForm(forms.ModelForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ["full_name","phone_number", "date_of_birth", "national_id", "region","date_of_joining", "gender","id_document", "photo"]
+        fields = ["full_name","phone_number", "date_of_birth", "national_id", "region","group","date_of_joining", "gender","id_document", "photo"]
         widgets = {
             "date_of_birth": forms.DateInput(attrs={"type": "date"}),
             "date_of_joining": forms.DateInput(attrs={"type": "date"}),

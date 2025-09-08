@@ -228,10 +228,10 @@ body.htmx-swapping {
          
           <div>
             <a class="navbar-brand brand-logo" href="index.html">
-              <img src="{% static 'assets/images/log.svg' %}" alt="logo" />
+              <img src="{% static 'assets/images/logo.png' %}" alt="logo" />
             </a>
             <a class="navbar-brand brand-logo-mini" href="index.html">
-              <img src="{% static 'assets/images/log-mini.svg' %}" alt="logo" />
+              <img src="{% static 'assets/images/logo.png' %}" alt="logo" />
             </a>
           </div>
         </div>
@@ -283,14 +283,14 @@ body.htmx-swapping {
            
             <li class="nav-item dropdown d-none d-lg-block user-dropdown">
               <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                <img class="img-xs rounded-circle" src="{{user.profile.photo}}" alt="Profile image"> </a>
+                <img class="img-xs rounded-circle" src="{{user.profile.photo.url}}" alt="Profile image" style="width: 40px; height: 40px"> </a>
               <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
                 <div class="dropdown-header text-center">
-                  <img class="img-md rounded-circle" src="{{user.profile.photo}}" alt="Profile image">
+                  <img class="img-md rounded-circle" src="{{user.profile.photo.url}}" alt="Profile image" style="width: 40px; height: 40px">
                   <p class="mb-1 mt-3 fw-semibold">{{user.profile.full_name}}</p>
                   <p class="fw-light text-muted mb-0">{{user.email}} - {{user.username}}</p>
                 </div>
-                <a class="dropdown-item"><i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile <span class="badge badge-pill badge-danger">1</span></a>
+                <a class="dropdown-item" href="/admin"><i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> Admin <span class="badge badge-pill badge-danger">1</span></a>
                
                 <a class="dropdown-item"><i class="dropdown-item-icon mdi mdi-calendar-check-outline text-primary me-2"></i> Activity</a>
            
@@ -343,18 +343,7 @@ body.htmx-swapping {
                 </ul>
               </div>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                <i class="menu-icon mdi mdi-chart-line"></i>
-                <span class="menu-title">Visualisation</span>
-                <i class="menu-arrow"></i>
-              </a>
-              <div class="collapse" id="charts">
-                <ul class="nav flex-column sub-menu">
-                  <li class="nav-item"> <a class="nav-link" href="pages/charts/chartjs.html">Charts</a></li>
-                </ul>
-              </div>
-            </li>
+           
             <li class="nav-item">
               <a class="nav-link" data-bs-toggle="collapse" href="#tables" aria-expanded="false" aria-controls="tables">
                 <i class="menu-icon mdi mdi-table"></i>

@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block branding %}
+    <div style="display:flex;align-items:center;">
+        <img src="{% static 'assets/img/logo.png' %}" alt="logo" height="40" style="margin-right:10px;">
+        <h1 id="site-name"><a href="{% url 'admin:index' %}">Decoire Admin</a></h1>
+    </div>
+{% endblock %}
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'assets/css/admin_custom.css' %}">
+{% endblock %}

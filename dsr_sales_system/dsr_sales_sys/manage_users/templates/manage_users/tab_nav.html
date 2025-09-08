@@ -1,4 +1,6 @@
 <ul class="nav nav-tabs htmx-transition" role="tablist" hx-boost="true">
+
+  {% if user.role == 'admin' %}
   <li class="nav-item">
     <a class="nav-link {% if request.resolver_match.url_name == 'register-users' %}active{% endif %}" 
        href="{% url 'register-users' %}" 
@@ -8,7 +10,7 @@
        Create User Account
     </a>
   </li>
-
+{% endif %}
   <li class="nav-item">
     <a class="nav-link {% if request.resolver_match.url_name == 'list-users' %}active{% endif %}" 
        href="{% url 'list-users' %}" 

@@ -24,7 +24,8 @@
               <div class="col-sm-12">
                 <div class="home-tab">
                   <div class="d-sm-flex align-items-center justify-content-between border-bottom">
-
+    <td>{{ stock.ssigned_to.phone }}</td>
+                   
                  
                    
                   </div>
@@ -87,61 +88,73 @@
     <hr>
     <h5 class="mt-4">Profile Info</h5>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        {{ profile_form.full_name.label_tag }}
-        {{ profile_form.full_name|add_class:"form-control" }}
-        <div class="invalid-feedback d-block">{{ profile_form.full_name.errors }}</div>
-      </div>
-      <div class="col-md-6 mb-3">
-        {{ profile_form.date_of_birth.label_tag }}
-        <input type="date" name="date_of_birth" id="id_date_of_birth"
-               class="form-control"
-               value="{{ profile_form.date_of_birth.value|date:'Y-m-d' }}" required>
-        <div class="invalid-feedback d-block">{{ profile_form.date_of_birth.errors }}</div>
-      </div>
-    </div>
+   
+                                            <div class="row">
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.full_name.label_tag }}
+                                                    {{ profile_form.full_name|add_class:"form-control" }}
+                                                    {{ profile_form.full_name.errors }}
+                                                </div>
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.phone_number.label_tag }}
+                                                    {{ profile_form.phone_number|add_class:"form-control" }}
+                                                    {{ profile_form.phone_number.errors }}
+                                                </div>
+                                            </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        {{ profile_form.national_id.label_tag }}
-        {{ profile_form.national_id|add_class:"form-control" }}
-        <div class="invalid-feedback d-block">{{ profile_form.national_id.errors }}</div>
-      </div>
-      <div class="col-md-6 mb-3">
-        {{ profile_form.region.label_tag }}
-        {{ profile_form.region|add_class:"form-control" }}
-        <div class="invalid-feedback d-block">{{ profile_form.region.errors }}</div>
-      </div>
-    </div>
+                                            <div class="row">
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.national_id.label_tag }}
+                                                    {{ profile_form.national_id|add_class:"form-control" }}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ profile_form.national_id.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.gender.label_tag }}
+                                                    {{ profile_form.gender|add_class:"form-select" }}
+                                                    {{ profile_form.gender.errors }}
+                                                </div>
+                                            </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="id_date_of_joining">Date of Joining</label>
-        <input type="date" name="date_of_joining" id="id_date_of_joining"
-               class="form-control"
-               value="{{ profile_form.date_of_joining.value|date:'Y-m-d' }}" required>
-        <div class="invalid-feedback d-block">{{ profile_form.date_of_joining.errors }}</div>
-      </div>
-      <div class="col-md-6 mb-3">
-        {{ profile_form.gender.label_tag }}
-        {{ profile_form.gender|add_class:"form-select" }}
-        <div class="invalid-feedback d-block">{{ profile_form.gender.errors }}</div>
-      </div>
-    </div>
+                                            <div class="row">
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.date_of_birth.label_tag }}
+                                                    <input type="date" name="date_of_birth" id="id_date_of_birth" class="form-control" required>
+                                                    {{ profile_form.date_of_birth.errors }}
+                                                </div>
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.date_of_joining.label_tag }}
+                                                    <input type="date" name="date_of_joining" id="id_date_of_joining" class="form-control" required>
+                                                    {{ profile_form.date_of_joining.errors }}
+                                                </div>
+                                            </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        {{ profile_form.id_document.label_tag }}
-        {{ profile_form.id_document }}
-        <div class="invalid-feedback d-block">{{ profile_form.id_document.errors }}</div>
-      </div>
-      <div class="col-md-6 mb-3">
-        {{ profile_form.photo.label_tag }}
-        {{ profile_form.photo }}
-        <div class="invalid-feedback d-block">{{ profile_form.photo.errors }}</div>
-      </div>
-    </div>
+                                            <div class="row">
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.region.label_tag }}
+                                                    {{ profile_form.region|add_class:"form-control" }}
+                                                    {{ profile_form.region.errors }}
+                                                </div>
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.group.label_tag }}
+                                                    {{ profile_form.group|add_class:"form-control" }}
+                                                    {{ profile_form.group.errors }}
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.id_document.label_tag }}
+                                                    {{ profile_form.id_document }}
+                                                    {{ profile_form.id_document.errors }}
+                                                </div>
+                                                <div class="col-12 col-md-6 mb-3">
+                                                    {{ profile_form.photo.label_tag }}
+                                                    {{ profile_form.photo }}
+                                                    {{ profile_form.photo.errors }}
+                                                </div>
+                                            </div>
 
     <button type="submit" class="btn btn-success w-100 mt-3">Update Employee</button>
   </div>

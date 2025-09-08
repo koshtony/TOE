@@ -1,213 +1,181 @@
-
 {% extends 'configs/base.html' %}
 {% load widget_tweaks %}
 {% block mainContent %}
 
 <style>
-
-    .htmx-indicator{
-        opacity:0;
+    .htmx-indicator {
+        opacity: 0;
         transition: opacity 500ms ease-in;
     }
-    .htmx-request .htmx-indicator{
-        opacity:1
+    .htmx-request .htmx-indicator {
+        opacity: 1
     }
-    .htmx-request.htmx-indicator{
-        opacity:1
+    .htmx-request.htmx-indicator {
+        opacity: 1
     }
- .modal-backdrop.fade.show{
-   display:none;
- }
+    .modal-backdrop.fade.show {
+        display: none;
+    }
+
+    /* Better card spacing on small screens */
+    @media (max-width: 576px) {
+        .card {
+            margin-bottom: 1rem;
+        }
+    }
 </style>
- <div class="content-wrapper">
-            <div class="row">
-              <div class="col-sm-12">
-                <div class="home-tab">
-                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
 
+<div class="content-wrapper">
+    <div class="row">
+        <div class="col-12">
+            <div class="home-tab">
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom">
                     {% include 'sales_process/sales_nav_links.html' %}
-                   
-                  </div>
-                  <div class="tab-content tab-content-basic">
-                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
-                      <div class="row">
-
-
-  <div class="container mt-5" >
-    <div class="container mt-3">
-  <div class="row text-center mb-4">
-    <!-- Today -->
-    <div class="col-md-4">
-      <div class="card shadow-sm p-3 bg-success text-white rounded-3">
-        <h6>Today</h6>
-        <p><strong>{{ summary.today_qty }}</strong> items</p>
-        <p>💰 {{ summary.today_amount|default:"0" }}</p>
-      </div>
-    </div>
-
-    <!-- This Month -->
-    <div class="col-md-4">
-      <div class="card shadow-sm p-3 bg-primary text-white rounded-3">
-        <h6>This Month</h6>
-        <p><strong>{{ summary.month_qty }}</strong> items</p>
-        <p>💰 {{ summary.month_amount|default:"0" }}</p>
-      </div>
-    </div>
-
-    <!-- Total -->
-    <div class="col-md-4">
-      <div class="card shadow-sm p-3 bg-dark text-white rounded-3">
-        <h6>Total Sales</h6>
-        <p><strong>{{ summary.total_qty }}</strong> items</p>
-        <p>💰 {{ summary.total_amount|default:"0" }}</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-  <div class="card shadow-lg p-4" >
-
-    <h3 class="mb-4">Sales</h3>
-<div class="container py-4">
-  
-<div id="sale-message"> </div>
-
-
-  <form 
-      method="POST"
-      hx-post="{% url 'sales-list' %}" 
-      hx-target="#sales-results" 
-      hx-indicator="#salesSpinner"
-      class="row g-3 mb-4">
-
-    {% csrf_token %}
-
-    <div class="col-md-3">
-      <label class="form-label">IMEI</label>
-      <input type="text" name="imei" value="{{ form.imei.value }}" 
-             class="form-control">
-    </div>
-
-    <div class="col-md-3">
-      <label class="form-label">Product Name</label>
-      <input type="text" name="product_name" value="{{ form.product_name.value }}" 
-             class="form-control">
-    </div>
-
-    <div class="col-md-3">
-      <label class="form-label">Start Date</label>
-      <input type="date" name="start_date" value="{{ form.start_date.value }}" 
-             class="form-control">
-    </div>
-
-    <div class="col-md-3">
-      <label class="form-label">End Date</label>
-      <input type="date" name="end_date" value="{{ form.end_date.value }}" 
-             class="form-control">
-    </div>
-
-    <div class="col-12 text-end">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-search"></i> Search
-      </button>
-
-      
-    </div>
-  </form>
-
-  <!-- Spinner -->
-  <div id="salesSpinner" class="text-center my-2" style="display:none;">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-  <div class="table-responsive shadow-sm rounded" id="sales-results">
-    {% include 'sales_process/sales_list_table.html' %}
-  </div>
-
-  
-
-</div>
-    
-
-
-      
-    <!-- 🔹 HTMX Form -->
-    
-  </div>
-</div> 
-
-
-
-
-                      
-
-                      </div>
-                    </div>
-                 </div>
                 </div>
-              </div>
+
+                <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                        <div class="row">
+
+                            <!-- ✅ Summary Cards -->
+                            <div class="container mt-4">
+                                <div class="row g-3 text-center">
+                                    <!-- Today -->
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="card shadow-sm p-3 h-100">
+                                            <h6>Today</h6>
+                                            <p><strong>{{ summary.today_qty }}</strong> items</p>
+                                            <p>💰 {{ summary.today_amount|default:"0" }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- This Month -->
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="card shadow-sm p-3 h-100">
+                                            <h6>This Month</h6>
+                                            <p><strong>{{ summary.month_qty }}</strong> items</p>
+                                            <p>💰 {{ summary.month_amount|default:"0" }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Total -->
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="card shadow-sm p-3 h-100">
+                                            <h6>Total Sales</h6>
+                                            <p><strong>{{ summary.total_qty }}</strong> items</p>
+                                            <p>💰 {{ summary.total_amount|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ✅ Sales Search & Table -->
+                            <div class="card shadow-lg p-4 mt-4">
+                                <h3 class="mb-4">Sales</h3>
+                                <div class="container-fluid px-0">
+                                    <div id="sale-message"></div>
+
+                                    <form 
+                                        method="POST"
+                                        hx-post="{% url 'sales-list' %}" 
+                                        hx-target="#sales-results" 
+                                        hx-indicator="#salesSpinner"
+                                        class="row g-3 mb-4">
+
+                                        {% csrf_token %}
+
+                                        <div class="col-12 col-md-6 col-lg-3">
+                                            <label class="form-label">IMEI</label>
+                                            <input type="text" name="imei" value="{{ form.imei.value }}" class="form-control">
+                                        </div>
+
+                                        <div class="col-12 col-md-6 col-lg-3">
+                                            <label class="form-label">Product Name</label>
+                                            <input type="text" name="product_name" value="{{ form.product_name.value }}" class="form-control">
+                                        </div>
+
+                                        <div class="col-12 col-md-6 col-lg-3">
+                                            <label class="form-label">Start Date</label>
+                                            <input type="date" name="start_date" value="{{ form.start_date.value }}" class="form-control">
+                                        </div>
+
+                                        <div class="col-12 col-md-6 col-lg-3">
+                                            <label class="form-label">End Date</label>
+                                            <input type="date" name="end_date" value="{{ form.end_date.value }}" class="form-control">
+                                        </div>
+
+                                        <div class="col-12 text-end">
+                                            <button type="submit" class="btn btn-primary w-100 w-md-auto">
+                                                <i class="bi bi-search"></i> Search
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <!-- Spinner -->
+                                    <div id="salesSpinner" class="text-center my-2" style="display:none;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive shadow-sm rounded" id="sales-results">
+                                        {% include 'sales_process/sales_list_table.html' %}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-
-<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-warning">
-        <h5 class="modal-title">Confirm Return</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Do you want to:</p>
-        <ul>
-          <li><strong>Return to stock</strong> → This will reverse the sale and put the product back as available.</li>
-          <li><strong>Mark as returned</strong> → This will keep the sale but mark it as returned.</li>
-        </ul>
-      </div>
-      <div class="modal-footer">
-        <form id="returnForm" hx-post="{% url 'return-sale' %}" hx-target="#sales-results">
-          {% csrf_token %}
-          <input type="hidden" name="sale_id" id="saleIdInput" readonly>
-          <br>
-          <button type="submit" name="action" value="mark" class="btn btn-secondary">Mark Returned</button>
-          <button type="submit" name="action" value="return" class="btn btn-danger">Return to Stock</button>
-        </form>
-      </div>
+        </div>
     </div>
-  </div>
 </div>
+
+<!-- ✅ Return Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Confirm Return</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Do you want to:</p>
+                <ul>
+                    <li><strong>Return to stock</strong> → This will reverse the sale and put the product back as available.</li>
+                    <li><strong>Mark as returned</strong> → This will keep the sale but mark it as returned.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <form id="returnForm" hx-post="{% url 'return-sale' %}" hx-target="#sales-results">
+                    {% csrf_token %}
+                    <input type="hidden" name="sale_id" id="saleIdInput" readonly>
+                    <button type="submit" name="action" value="mark" class="btn btn-secondary">Mark Returned</button>
+                    <button type="submit" name="action" value="return" class="btn btn-danger">Return to Stock</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-
 function showReturnModal(saleId) {
-
-
-  // modal element
-  var modalEl = document.getElementById('returnModal');
-  var form = document.getElementById('returnForm');
-  var hiddenInput = document.getElementById('saleIdInput');
-
-  // set hidden input
-  hiddenInput.value = saleId;
-
-  // update hx-target (row refresh)
-  //form.setAttribute("hx-target", "#sale-row-" + saleId);
-
-  // show modal (Bootstrap 5 way)
-  var modal = new bootstrap.Modal(modalEl);
-  modal.show();
+    var modalEl = document.getElementById('returnModal');
+    var hiddenInput = document.getElementById('saleIdInput');
+    hiddenInput.value = saleId;
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
 }
 
 // hide modal after HTMX success
 document.addEventListener("htmx:afterOnLoad", function (evt) {
-  var modalEl = document.getElementById('returnModal');
-  var modal = bootstrap.Modal.getInstance(modalEl);
-  if (modal) {
-    modal.hide();
-  }
+    var modalEl = document.getElementById('returnModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) {
+        modal.hide();
+    }
 });
 </script>
 
 {% endblock mainContent %}
-
-
-

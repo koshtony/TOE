@@ -2,16 +2,25 @@
         <thead class="table-dark">
             <tr>
                 <th>ID</th>
+                 <th>IMEI</th>
                 <th>Product</th>
-                <th>IMEI</th>
+               
                 <th>Price</th>
+                  <th>Assigned Agent</th>
+                  <th>Assigned Agent Phone</th>
+                  <th>Assigned Agent Id</th>
+                  <th>Assigned Agent Region</th>
+                  <th>Assigned Agent Group</th>
+                  <th>Latest Assigned Date</th>
+                  <th>Stock In Date</th>
+                  <th>Stock In By</th>
+                  <th>Age</th>
+                  <th>Assigned By</th>
+                
+                 
+                  
                 <th>Status</th>
-                <th>Age</th>
-                <th>Assigned To</th>
-                <th>Assigned On</th>
-                <th>Allocated By</th>
-                <th>Added By</th>
-                 <th>Added On</th>
+               
                 <th>Actions</th>
             </tr>
         </thead>
@@ -19,39 +28,47 @@
             {% for stock in stocks %}
                 <tr id="stock-{{ stock.imei_number }}">
     <td>{{ stock.pk }}</td>
-    <td>{{ stock.product.model_name }}</td>
-    <td>{{ stock.imei_number }}</td>
+     <td> 
+        <span id="IMEI-{{ stock.imei_number }}">{{ stock.imei_number }}</span>
+        <button class="btn btn-sm btn-outline-primary" 
+                onclick="copyToClipboard('IMEI-{{stock.imei_number}}')">
+          📋 Copy
+        </button></td>
+    <td>{{ stock.product.model_name  }} {{ stock.product.model_ram }}+{{ stock.product.model_storage }}</td>
+   
     <td>{{stock.product.price}}</td>
-    <td>{{ stock.status }}</td>
+    <td>{{ stock.assigned_to.profile.full_name }}</td>
+    <td>{{ stock.assigned_to.profile.phone_number }}</td>
+    <td>{{ stock.assigned_to.profile.national_id }}</td>
+    <td>{{ stock.assigned_to.profile.region }}</td>
+    <td>{{ stock.assigned_to.profile.group }}</td>
+    <td>{{ stock.last_assigned_date }}</td>
+    <td>{{ stock.stock_in_date }}</td>
+    <td>{{ stock.added_by.profile.full_name }}</td>
     {% if stock.status == 'sold' %}
         <td><span class="text-muted warning">Sold</span></td>
     {% else %}
         <td>{{ stock.days_in_stock }} days</td>
     {% endif %}
 
-    <td>
-        {% if stock.assigned_to %}
-            👤 {{ stock.assigned_to.profile.full_name }}
-        {% else %}
-            <span class="text-muted">Not assigned</span>
-        {% endif %}
-    </td>
-    <td>
-        {{ stock.last_assigned_date|date:"d M Y H:i" }}
-    </td>
+    
     <td>
         {% if stock.allocated_by %}
             👤 {{ stock.allocated_by.profile.full_name }}
         {% else %}
-            <span class="text-muted">Not allocated</span>
+            <span class="text-muted">Not Assigned</span>
         {% endif %}
     </td>
-    <td>
-        👤 {{ stock.added_by.profile.full_name }}
-    </td>
-    <td>
-        {{ stock.date_since_stock_in }}
-    </td>
+
+
+    
+   
+  
+   
+   
+
+    <td>{{ stock.status }}</td>
+   
     <td>
         <a class="btn btn-sm btn-primary"
                 href="{% url 'allocate-stock' stock.imei_number %}"
@@ -68,3 +85,17 @@
             {% endfor %}
         </tbody>
     </table>
+
+<script>
+   function copyToClipboard(elementId) {
+  const el = document.getElementById(elementId);
+  const text = el.innerText || el.textContent;
+
+  navigator.clipboard.writeText(text).then(() => {
+    // Optional: show feedback
+    alert("Copied: " + text);
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+  });
+}
+</script>

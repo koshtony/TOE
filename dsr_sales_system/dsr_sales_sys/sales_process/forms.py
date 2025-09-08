@@ -101,17 +101,17 @@ class SaleForm(forms.Form):
                 try:
                     stock = Stock.objects.get(imei_number=imei, status="in_stock")
                     
-                    if not stock.assigned_to:
+                    if not stock.assigned_to and sold_by.role not in ["manager", "admin"]:
                         
                         errors.append(f"❌ IMEI {imei} not assigned to any user.")
                         continue
                     
-                    if stock.assigned_to != sold_by:
+                    if stock.assigned_to != sold_by and sold_by.role not in ["manager", "admin"]:
                         errors.append(f"❌ IMEI {imei} not assigned to {sold_by}.")
                         continue
 
                     # Create SaleItem
-                    sale = Sale.objects.create(customer=customer, sold_by=sold_by,stock=stock,order_id=order_id)
+                    sale = Sale.objects.create(customer=customer, sold_by=stock.assigned_to,stock=stock,order_id=order_id)
                     
                     print(sale)
                     # Update stock

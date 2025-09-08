@@ -1,28 +1,31 @@
 {% extends 'configs/base.html' %}
 {% block mainContent %}
 <div class="container mt-4">
-  <h2 class="mb-3">📊 Reports Dashboard</h2>
+  <h2 class="mb-3 text-center text-md-start">📊 Reports Dashboard</h2>
 
-  <!-- Search -->
+  <!-- ✅ Search -->
   <form 
       hx-post="{% url 'search-reports' %}" 
       hx-target="#search-results"
-   
-      class="d-flex mb-3">
+      class="row g-2 mb-3 align-items-center">
       {% csrf_token %}
-    <input type="text" name="q" class="form-control me-2" placeholder="🔍 Search IMEI, Customer, Order ID, etc...">
-    <button class="btn btn-primary" type="submit">Search</button>
+      <div class="col-12 col-md-8">
+        <input type="text" name="q" class="form-control" placeholder="🔍 Search IMEI, Customer, Order ID, etc...">
+      </div>
+      <div class="col-12 col-md-4 text-md-start">
+        <button class="btn btn-primary w-100" type="submit">Search</button>
+      </div>
   </form>
 
   <div id="search-results"></div>
 
-  <!-- Quick Downloads -->
-  <h4 class="mt-5">📥 Quick Downloads</h4>
-  <div class="btn-group">
-    <a href="{% url 'download-report' 'sales' 'xlsx' %}" class="btn btn-outline-primary">Sales (Excel)</a>
-    <a href="{% url 'download-report' 'stocks' 'xlsx' %}" class="btn btn-outline-success">Stocks (Excel)</a>
-    <a href="{% url 'download-report' 'customers' 'xlsx' %}" class="btn btn-outline-warning">Customers (Excel)</a>
-    <a href="{% url 'download-report' 'users' 'xlsx' %}" class="btn btn-outline-dark">Users (Excel)</a>
+  <!-- ✅ Quick Downloads -->
+  <h4 class="mt-5 text-center text-md-start">📥 Quick Downloads</h4>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'download-report' 'sales' 'xlsx' %}" class="btn btn-outline-primary flex-fill flex-md-grow-0">Sales (Excel)</a>
+    <a href="{% url 'download-report' 'stocks' 'xlsx' %}" class="btn btn-outline-success flex-fill flex-md-grow-0">Stocks (Excel)</a>
+    <a href="{% url 'download-report' 'customers' 'xlsx' %}" class="btn btn-outline-warning flex-fill flex-md-grow-0">Customers (Excel)</a>
+    <a href="{% url 'download-report' 'users' 'xlsx' %}" class="btn btn-outline-dark flex-fill flex-md-grow-0">Users (Excel)</a>
   </div>
 </div>
 {% endblock %}

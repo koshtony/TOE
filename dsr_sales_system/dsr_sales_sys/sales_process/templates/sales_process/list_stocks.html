@@ -1,75 +1,109 @@
-
 {% extends 'configs/base.html' %}
 {% load widget_tweaks %}
 {% block mainContent %}
 
 <style>
-
-    .htmx-indicator{
-        opacity:0;
+    .htmx-indicator {
+        opacity: 0;
         transition: opacity 500ms ease-in;
     }
-    .htmx-request .htmx-indicator{
-        opacity:1
+    .htmx-request .htmx-indicator {
+        opacity: 1;
     }
-    .htmx-request.htmx-indicator{
-        opacity:1
+    .htmx-request.htmx-indicator {
+        opacity: 1;
     }
- .modal-backdrop.fade.show{
-   display:none;
- }
+    .modal-backdrop.fade.show {
+        display: none;
+    }
 
-
+    /* Better spacing for cards on small screens */
+    @media (max-width: 576px) {
+        .card {
+            margin-bottom: 1rem;
+        }
+        h2 {
+            font-size: 1.25rem;
+        }
+    }
 </style>
- <div class="content-wrapper">
-            <div class="row">
-              <div class="col-sm-12">
-                <div class="home-tab">
-                  <div class="d-sm-flex align-items-center justify-content-between border-bottom">
 
+<div class="content-wrapper">
+    <div class="row">
+        <div class="col-12">
+            <div class="home-tab">
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom">
                     {% include 'sales_process/add_stocks_nav_links.html' %}
-                   
-                  </div>
-                  <div class="tab-content tab-content-basic">
-                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
-                      <div class="row">
-
-                      <div class="container mt-5">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Stocks List</h2>
-    <a href="{% url 'bulk-add-stock' %}" class="btn btn-success">+ Add Stocks</a>
-  </div>
-
-  <!-- Search Filter -->
-  <form method="get" class="mb-3">
-    <div class="input-group ">
-      <input type="text" name="q"  class="form-control" name="query" hx-get="{% url 'filter-stocks' %}" hx-target="#stockTable" hx-trigger="keyup changed delay:500ms" placeholder="Search by name, category, item code, or SKU...">
-     
-    </div> 
-  </form>
-
-  <!-- Product Table -->
-  <div class="table-responsive shadow-sm rounded" id="stockTable">
-
-    <div id="respMsg"></div>
-    
-                {% include 'sales_process/list_stocks_table.html' %}
-    </table>
-    
-  </div>
-  </div>
-                      
-
-                      </div>
-                    </div>
-                 </div>
                 </div>
-              </div>
+
+                <div class="tab-content tab-content-basic">
+                    <div class="tab-pane fade show active" id="create-user" role="tabpanel" aria-labelledby="overview">
+                        <div class="row">
+                            <div class="container mt-4">
+
+                                <!-- ✅ Summary Cards -->
+                                <div class="row g-3 mb-4 text-center">
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="card shadow-sm border-0 rounded-3 h-100">
+                                            <div class="card-body">
+                                                <h6 class="text-muted mb-1">Total Stocks</h6>
+                                                <h3 class="fw-bold">{{ total_stocks }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="card shadow-sm border-0 rounded-3 h-100">
+                                            <div class="card-body">
+                                                <h6 class="text-muted mb-1">Average Age (days)</h6>
+                                                <h3 class="fw-bold">{{ avg_age_days|default:"-" }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="card shadow-sm border-0 rounded-3 h-100">
+                                            <div class="card-body">
+                                                <h6 class="text-muted mb-1">Weeks of Stock</h6>
+                                                <h3 class="fw-bold">{{ weeks_of_stock }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ✅ Title & Action Button -->
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                    <h2 class="mb-0">Stocks List</h2>
+                                    <a href="{% url 'bulk-add-stock' %}" class="btn btn-success w-100 w-sm-auto">+ Add Stocks</a>
+                                </div>
+
+                                <!-- ✅ Search Filter -->
+                                <form method="get" class="mb-3">
+                                    <div class="input-group">
+                                        <input 
+                                            type="text" 
+                                            name="q"
+                                            class="form-control"
+                                            hx-get="{% url 'filter-stocks' %}" 
+                                            hx-target="#stockTable" 
+                                            hx-trigger="keyup changed delay:500ms"
+                                            placeholder="Search by name, category, item code, or SKU...">
+                                    </div>
+                                </form>
+
+                                <!-- ✅ Product Table -->
+                                <div class="table-responsive shadow-sm rounded" id="stockTable">
+                                    <div id="respMsg"></div>
+                                    {% include 'sales_process/list_stocks_table.html' %}
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-<script>
+        </div>
+    </div>
+</div>
 
-</script>
 {% endblock mainContent %}
-
-

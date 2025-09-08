@@ -6,8 +6,10 @@ from django.contrib.auth import update_session_auth_hash
 from .models import CustomUser,Profile
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
+from django.db import transaction
 
-
+@login_required
+@transaction.atomic
 def register_user(request):
     """
     View to register a new user.
@@ -47,10 +49,7 @@ def register_user(request):
                 return HttpResponse(
                     f"<div class='alert alert-danger'>❌👎👎 Registration failed: {str(e)}</div>"
                 )
-        return render(request, "manage_users/register_users.html", {
-            "user_form": user_form,
-            "profile_form": profile_form
-        })  
+      
     else:
         user_form = CustomUserForm()
         profile_form = ProfileForm()
@@ -62,13 +61,20 @@ def register_user(request):
     
 def list_users(request):
     
+    
     """
     List all registered users ordered by date of registration in descending order.
     
     :param request:
     :return:
     """
-    users = CustomUser.objects.select_related("profile").all().order_by("-date_of_registration")
+    
+    user  = request.user
+    if user.role == "Admin" or user.role == "Manager":
+        users = CustomUser.objects.select_related("profile").all().order_by("-date_of_registration")
+        
+    else:
+        users = CustomUser.objects.select_related("profile").filter(username=user.username).order_by("-date_of_registration")
     
     context = {
         "users": users

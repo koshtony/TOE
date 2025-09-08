@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import handler404, handler500, handler403, handler400
 from django.contrib.auth import views as auth_view
 
 urlpatterns = [
@@ -32,6 +33,12 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT)
 
 
+
                  # default: "Django Administration"
 admin.site.index_title = 'Admin page'                 # default: "Site administration"
 admin.site.site_title = 'koshtech admin'
+
+handler404 = "configs.views.custom_404"
+handler500 = "configs.views.custom_500"
+handler403 = "configs.views.custom_403"
+handler400 = "configs.views.custom_400"

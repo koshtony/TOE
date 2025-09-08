@@ -47,10 +47,11 @@ class Profile(models.Model):
     full_name = models.CharField(max_length=200)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    national_id = models.CharField(max_length=50, unique=True) 
+    national_id = models.CharField(max_length=50, unique=False, blank=True, null=True) 
     date_of_joining = models.DateField(null=True, blank=True) 
     gender = models.CharField(max_length=20, blank=True, null=True, choices=GENDER_CHOICES)
     region = models.CharField(max_length=100, blank=True, null=True)
+    group = models.CharField(max_length=100, blank=True, null=True)
     
 
     # Uploads

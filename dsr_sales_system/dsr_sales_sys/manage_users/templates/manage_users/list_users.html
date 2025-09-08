@@ -90,7 +90,7 @@
                         <i class="mdi mdi-eye"></i> View
                         </a>
       </td>
-
+     {% if request.user.role == 'admin' %}
       <td>
         <!-- 🔗 Add update link -->
         <a class="btn btn-sm btn-primary"
@@ -99,6 +99,16 @@
           <i class="mdi mdi-account-edit"></i> Update
         </a>
       </td>
+
+      {% else %}
+      <td>
+        <!-- 🔗 Add update link -->
+        <button class="btn btn-sm btn-primary"> 
+          <i class="mdi mdi-account-edit"></i>
+          ❌
+        </button>
+      </td>
+      {% endif %}
 
             </tr>
             {% empty %}

@@ -5,13 +5,20 @@
         <th>Order 🔢</th>
         <th>IMEI</th>
         <th>Product</th>
-        <th>Customer</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Id Number</th>
-        <th>Status</th>
-        <th>Sold By:👤</th>
+        <th>Price</th>
+        <th>Agent Name</th>
+        <th>Agent Phone</th>
+        <th>Agent Id</th>
+        <th>Region</th>
+        <th>Group</th>
+        <th>Customer Name</th>
+        <th>Customer Id</th>
+        <th>Customer Phone</th>
+        <th>Customer Address</th>
+         <th>Processed By</th>
+         <th>Sold By</th>
         <th>Date Sold</th>
+        <th>Status</th>
         <th>Actions</th>
         <th> Receipt ⬇️</th>
       </tr>
@@ -23,18 +30,26 @@
           <td>{{ sale.order_id }}</td>
           <td>{{ sale.stock.imei_number }}</td>
           <td>{{ sale.stock.product.model_name }} {{ sale.stock.product.model_ram }}+{{ sale.stock.product.model_storage }}</td>
+          <td>{{ sale.stock.product.price }}</td>
+          <td>{{ sale.sold_by.profile.full_name }}</td>
+          <td>{{ sale.sold_by.profile.phone_number }}</td>
+          <td>{{ sale.sold_by.profile.national_id }}</td>
+          <td>{{ sale.sold_by.profile.region }}</td> 
+          <td>{{ sale.sold_by.profile.group }}</td>
           <td>{{ sale.customer.name }}</td>
-          <td>{{ sale.customer.email }}</td>
-          <td>{{ sale.customer.phone }}</td>
           <td>{{ sale.customer.id_number }}</td>
+          <td>{{ sale.customer.phone }}</td>
+          <td>{{ sale.customer.address }}</td>
+          <td>{{ user.profile.full_name }}</td>
+          <td>{{sale.sold_by.username}} ➡️{{ sale.sold_by.profile.full_name }}</td>
+          <td>📅{{ sale.sales_date|date:"d M Y H:i" }}</td>
           {% if sale.stock.status == "returned" %}
             <td><span class="badge bg-warning">Returned</span></td>
           {% else %}
             <td><span class="badge bg-success">Sold</span></td>
           {% endif %}
         
-          <td>{{ sale.sold_by.profile.full_name }}</td>
-          <td>{{ sale.sales_date|date:"d M Y H:i" }}</td>
+          
           <td>
             {% if sale.stock.status == "returned" %}
               <span class="badge bg-warning">Returned</span>

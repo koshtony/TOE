@@ -180,6 +180,11 @@ class Customer(models.Model):
     
 
 class Sale(models.Model):
+    
+    sale_type_choices = [
+        ('wholesale', 'Wholesale'),
+        ('retail', 'Retail'),
+    ]
     stock = models.OneToOneField(Stock, on_delete=models.CASCADE, related_name="sale",null=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="sales")
     sales_date = models.DateTimeField(auto_now_add=True)
@@ -191,6 +196,8 @@ class Sale(models.Model):
         blank=True,
         related_name="sales_made"
     )
+    
+    sale_type=models.CharField(max_length=255,null=True,blank=True, choices=sale_type_choices)
 
     order_id = models.CharField(max_length=20,null=True,blank=True, editable=False)
 
@@ -202,3 +209,18 @@ class Sale(models.Model):
 
     def __str__(self):
         return f"Sale #{self.id} to {self.customer.name}"
+    
+    
+class Notification(models.Model):
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name="notifications"
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.recipient.username}: {self.title}"

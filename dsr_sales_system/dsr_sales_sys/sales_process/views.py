@@ -7,7 +7,7 @@ from manage_users.models import CompanyProfile,Profile, CustomUser
 from django.db import transaction
 from django.apps import apps
 from django.contrib import messages
-from django.db.models import Q,Count,F,Min,Sum
+from django.db.models import Q,Count,F,Min,Sum,ExpressionWrapper, DurationField,Avg
 from django.db.models.functions import TruncDay, TruncMonth,TruncWeek
 from django.utils.timezone import now
 from django.http import HttpResponse, JsonResponse,Http404,FileResponse
@@ -139,6 +139,19 @@ def home_view(request):
     .annotate(total=Count("id"))
     .order_by("-total")[:5]
     )
+    
+    today = timezone.now().date()
+    start_of_month = today.replace(day=1)
+    sales = Sale.objects.select_related("stock", "stock__product").order_by("-sales_date")
+    monthly_sales = sales.filter(sales_date__date__gte=start_of_month)
+
+    # Total sellout count by product for this month
+    monthly_by_product = (
+        monthly_sales
+        .values("stock__product__model_name")
+        .annotate(totals=Count("id"))
+      
+    )
     context = {
         **agg,
         "growth_today": growth_today,
@@ -154,6 +167,7 @@ def home_view(request):
         "sales_per_day": list(sales_per_day),
         "sales_per_month": list(sales_per_month),
         "top_sellers": list(top_sellers),
+        "monthly_by_product": list(monthly_by_product),
     }
 
     cache.set("sales_dash_v2", payload, 60) 
@@ -263,7 +277,8 @@ def filter_products(request):
 
     return render(request, "sales_process/list_products_table.html", {"products": products})
 
-@login_required 
+@login_required
+@transaction.atomic
 def bulk_add_stock(request):
     if request.method == "POST":
         form = BulkStockForm(request.POST)
@@ -322,13 +337,37 @@ def list_stocks(request):
     
     if user.role == "manager" or user.role == "admin":
         
-        stocks = Stock.objects.select_related("product", "assigned_to")[:5]
+        stocks = Stock.objects.select_related("product", "assigned_to")
         
     else: 
         
-        stocks = Stock.objects.select_related("product", "assigned_to").filter(assigned_to=user)[:5]
+        stocks = Stock.objects.select_related("product", "assigned_to").filter(assigned_to=user)
+        
+        
+    total_stocks = stocks.count()
+
+    # Average age in days
+    avg_age_qs = stocks.annotate(
+        age=ExpressionWrapper(
+            timezone.now() - F("stock_in_date"),  # assuming you have a date_added field
+            output_field=DurationField()
+        )
+    ).aggregate(avg_age=Avg("age"))
+
+    avg_age_days = None
+    if avg_age_qs["avg_age"]:
+        avg_age_days = avg_age_qs["avg_age"].days
+
+    # Weeks of stock: (total stock) / (avg weekly sales of last 4 weeks)
+    four_weeks_ago = timezone.now() - timedelta(weeks=4)
+    recent_sales = Sale.objects.filter(
+        sales_date__gte=four_weeks_ago,
+        stock__in=stocks
+    )
+    weekly_sales = recent_sales.count() / 4 if recent_sales.exists() else 0
+    weeks_of_stock = round(total_stocks / weekly_sales, 1) if weekly_sales else "∞"
     
-    return render(request, "sales_process/list_stocks.html", {"stocks": stocks})
+    return render(request, "sales_process/list_stocks.html", {"stocks": stocks, "total_stocks": total_stocks, "avg_age_days": avg_age_days, "weeks_of_stock": weeks_of_stock})
 @login_required
 def filter_stocks(request):
     """HTMX filter endpoint – returns only the table"""
@@ -358,6 +397,7 @@ def filter_stocks(request):
     return render(request, "sales_process/list_stocks_table.html", {"stocks": stocks})
 @login_required
 @csrf_exempt
+@transaction.atomic
 def allocate_stock(request, imei_number):
     stock = get_object_or_404(Stock, imei_number=imei_number)
 
@@ -566,14 +606,14 @@ def search_users_for_bulk_allocation(request):
         
 '''
 @login_required
+@transaction.atomic
 def create_sale(request):
     if request.method == "POST":
         form = SaleForm(request.POST)
         if form.is_valid():
         
             sale, results = form.process_sale(sold_by=request.user)
-            
-            print(results)
+       
             
             if sale and results:
                 return render(request, "sales_process/sales_message.html", {
@@ -831,11 +871,22 @@ def download_report(request, model, format):
         qs = Sale.objects.select_related("customer", "stock", "sold_by")
         data = [{
             "Order ID": s.order_id,
-            "Customer": s.customer.name,
             "IMEI": s.stock.imei_number,
             "Product": s.stock.product.model_name,
+            "RAM": s.stock.product.model_ram,
+            "Storage": s.stock.product.model_storage,	
             "Price": s.stock.product.price,
-            "Sold By": s.sold_by.username if s.sold_by else None,
+            "Agent Name": s.sold_by.profile.full_name if s.sold_by else None,
+            "Agent Phone":s.sold_by.profile.phone_number if s.sold_by else None,	
+            "Agent Username":s.sold_by.username if s.sold_by else None,
+            "Agent Id":s.sold_by.profile.national_id if s.sold_by else None,
+            "Region":s.sold_by.profile.region if s.sold_by else None,
+            "Group":s.sold_by.profile.group if s.sold_by else None,
+            "Customer Name": s.customer.name,
+            "Customer ID": s.customer.id_number,
+            "Customer Phone": s.customer.phone,
+            "Customer Address": s.customer.address,
+            "Processed By": request.user.profile.full_name,
             "Date": s.sales_date.replace(tzinfo=None) if s.sales_date else None
         } for s in qs]
     elif model == "stocks":
@@ -845,6 +896,16 @@ def download_report(request, model, format):
             "Product": s.product.model_name,
             "RAM": s.product.model_ram,
             "Storage": s.product.model_storage,
+            "Price": s.product.price,
+            "Allocated Agent": s.assigned_to.profile.full_name if s.assigned_to else None,
+            "Allocated Agent Phone": s.assigned_to.profile.phone_number if s.assigned_to else None,
+            "Allocated Agent Username": s.assigned_to.username if s.assigned_to else None,
+            "Allocated Agent ID": s.assigned_to.profile.national_id if s.assigned_to else None,
+            "Allocated Agent Region": s.assigned_to.profile.region if s.assigned_to else None,
+            "Allocated Agent Group": s.assigned_to.profile.group if s.assigned_to else None,
+            "Latest Allocated Date": s.last_assigned_date.replace(tzinfo=None) if s.last_assigned_date else None,
+            "Stock In Date": s.stock_in_date,
+            "Allocated By": s.allocated_by.profile.full_name if s.allocated_by else None,
             "Status": s.status,
         } for s in qs]
     elif model == "customers":

@@ -1,0 +1,18 @@
+{% extends "configs/base.html" %}
+{% block mainContent %}
+<div class="container text-center py-5">
+  <h1 class="display-4 text-danger">🚫 404 - Page Not Found</h1>
+  <p class="lead">Oops! The page you’re looking for doesn’t exist.</p>
+  <p>You’ll be redirected to the Dashboard in <span id="countdown">5</span> seconds...</p>
+  <a href="{% url 'home' %}" class="btn btn-primary mt-3">Go Now</a>
+</div>
+<script>
+  let counter = 5;
+  const cd = document.getElementById("countdown");
+  setInterval(() => {
+    counter--;
+    cd.innerText = counter;
+    if (counter <= 0) window.location.href = "{% url 'home' %}";
+  }, 1000);
+</script>
+{% endblock %}

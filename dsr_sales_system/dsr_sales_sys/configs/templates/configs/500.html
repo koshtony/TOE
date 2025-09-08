@@ -1,0 +1,18 @@
+{% extends "configs/base.html" %}
+{% block mainContent %}
+<div class="container text-center py-5">
+  <h1 class="display-4 text-warning">⚠️ 500 - Server Error</h1>
+  <p class="lead">Something went wrong on our end.</p>
+  <p>We’re working on it. Redirecting in <span id="countdown">5</span> seconds...</p>
+  <a href="{% url 'home' %}" class="btn btn-dark mt-3">Go Now</a>
+</div>
+<script>
+  let counter = 5;
+  const cd = document.getElementById("countdown");
+  setInterval(() => {
+    counter--;
+    cd.innerText = counter;
+    if (counter <= 0) window.location.href = "{% url 'home' %}";
+  }, 1000);
+</script>
+{% endblock %}
